@@ -48,14 +48,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.spotixe.AuthRoute
+import com.example.spotixe.Graph
 import com.example.spotixe.R
-import com.google.firebase.auth.FirebaseUser
 
 @Composable
 fun Sign_UpEmail1Screen(
-    navController: NavController,
-    onSignedIn: (FirebaseUser) -> Unit={},
-    onError: (String) -> Unit={}
+    navController: NavController
 ){
     var green = Color(0xFF58BA47)
     var agreed by rememberSaveable { mutableStateOf(false) }
@@ -198,12 +196,16 @@ fun Sign_UpEmail1Screen(
             Spacer(modifier = Modifier.height(15.dp))
 
             GoogleSignInButtonFirebase(
-                onSuccess = { user: FirebaseUser ->
-                    navController.navigate("") {
-                        popUpTo("login") { inclusive = true }
+                onSuccess = { loginResponse ->
+                    // Successfully logged in with JWT saved
+                    navController.navigate(Graph.MAIN) {
+                        popUpTo(Graph.AUTH) { inclusive = true }
                         launchSingleTop = true
-                    } },
-                onError = { e -> onError(e.message ?: "Unknown error") }
+                    }
+                },
+                onError = { error ->
+                    // Error handled with Toast in the button
+                }
             )
 
             Spacer(modifier = Modifier.height(15.dp))

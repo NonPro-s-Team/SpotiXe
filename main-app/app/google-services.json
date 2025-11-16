@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "814326272937",
+    "project_id": "spotixe-97162",
+    "storage_bucket": "spotixe-97162.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:814326272937:android:1313defbfac8bface8eab8",
+        "android_client_info": {
+          "package_name": "com.example.spotixe"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "814326272937-an4u5sk1ha7i2obmo6pmve43td63o1pq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQu0EY1_et0iVF_vHsrZ9IxEdb2QPWRzA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "814326272937-an4u5sk1ha7i2obmo6pmve43td63o1pq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

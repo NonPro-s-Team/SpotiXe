@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -42,6 +43,7 @@ import com.example.spotixe.Pages.Pages.StartPages.Start3Screen
 import com.example.spotixe.Pages.Pages.StartPages.StartScreen
 import com.example.spotixe.player.PlayerViewModel
 import com.example.spotixe.ui.theme.SpotiXeTheme
+import androidx.lifecycle.ViewModelProvider
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -52,8 +54,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val navController: NavHostController = rememberNavController()
-            // VM phát nhạc dùng chung toàn app (scope Activity)
-            val playerVM: PlayerViewModel = viewModel()
+            val context = LocalContext.current
+            // VM phát nhạc dùng chung toàn app (scope Activity) - NEW ExoPlayer-based
+            val playerVM: PlayerViewModel = remember {
+                ViewModelProvider(
+                    this,
+                    ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+                )[PlayerViewModel::class.java]
+            }
+            // Authentication ViewModel
+            val authVM: com.example.spotixe.auth.viewmodel.AuthViewModel = viewModel()
 
             SpotiXeTheme {
                 SetSystemBars()
@@ -68,16 +78,27 @@ class MainActivity : ComponentActivity() {
                     MainRoute.SongViewMore,
                     MainRoute.UserDetail
                 )
+
+                // Check if current route matches api_song_view pattern
+                val currentRoute = dest?.route
+                val isApiSongView = currentRoute?.startsWith("api_song_view/") == true
+
                 val showBottomBar =
-                    dest.isInGraph(Graph.MAIN) && dest?.route !in hideBottomOnRoutes
+                    dest.isInGraph(Graph.MAIN) &&
+                    dest?.route !in hideBottomOnRoutes &&
+                    !isApiSongView  // Ẩn bottom bar khi đang ở màn hình api song view
 
                 // (Tuỳ chọn) Ẩn MiniPlayerBar ở một vài màn full-screen
                 val hideMiniOnRoutes = setOf(
                     MainRoute.SongView,
-                    MainRoute.Playlist
+                    MainRoute.Playlist,
+                    "api_song_view/{songId}"  // Ẩn mini player khi đang ở full screen player
                 )
+
                 val showMini =
-                    dest.isInGraph(Graph.MAIN) && dest?.route !in hideMiniOnRoutes
+                    dest.isInGraph(Graph.MAIN) &&
+                    dest?.route !in hideMiniOnRoutes &&
+                    !isApiSongView  // Ẩn nếu đang ở màn hình full screen player
 
                 Scaffold(
                     containerColor = Color.Black,
@@ -85,16 +106,21 @@ class MainActivity : ComponentActivity() {
                 ) { inner ->
                     Box(Modifier.fillMaxSize()) {
                         // ----- NAV HOST -----
+                        // Determine start destination based on login status
+                        val isLoggedIn by authVM.isLoggedIn.collectAsState()
+                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
+//                        val startDest = Graph.AUTH
+
                         NavHost(
                             navController = navController,
-                            startDestination = Graph.AUTH,
+                            startDestination = startDest,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(inner)
                         ) {
                             // START GRAPH
                             navigation(
-                                startDestination = StartRoute.Start1,
+                                startDestination = StartRoute.Start3,
                                 route = Graph.START
                             ) {
                                 composable(StartRoute.Start1) { StartScreen(navController) }
@@ -132,7 +158,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
 
-                                // SongView
+                                // SongView (old - local data)
                                 composable(
                                     route = MainRoute.SongView,
                                     arguments = listOf(navArgument("songId") { type = NavType.StringType })
@@ -146,6 +172,19 @@ class MainActivity : ComponentActivity() {
                                             Text("Song not found", color = Color.White)
                                         }
                                     }
+                                }
+
+                                // API Song View (new - with ExoPlayer)
+                                composable(
+                                    route = "api_song_view/{songId}",
+                                    arguments = listOf(navArgument("songId") { type = NavType.LongType })
+                                ) { backStackEntry ->
+                                    val songId = backStackEntry.arguments?.getLong("songId") ?: return@composable
+                                    ApiSongViewScreen(
+                                        navController = navController,
+                                        songId = songId,
+                                        playerViewModel = playerVM
+                                    )
                                 }
 
                                 // SongViewMore (menu more)
@@ -242,14 +281,10 @@ class MainActivity : ComponentActivity() {
                         // MiniPlayerBar overlay (ngoài NavHost, nằm trên BottomBar)
                         if (showMini) {
                             MiniPlayerBar(
-                                state         = playerVM.ui,
-                                onToggle      = { playerVM.toggle() },
-                                onSeek        = { p -> playerVM.seekTo(p) },
-                                onSeekStart   = { playerVM.beginSeek() },
-                                onSeekEnd     = { playerVM.endSeek() },
-                                onOpenSongView= {
-                                    playerVM.ui.value.current?.id?.let { id ->
-                                        navController.navigate(MainRoute.songView(id))
+                                playerViewModel = playerVM,
+                                onOpenSongView = {
+                                    playerVM.currentSong.value?.songId?.let { songId ->
+                                        navController.navigate("api_song_view/$songId")
                                     }
                                 },
                                 modifier = Modifier

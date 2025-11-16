@@ -160,7 +160,7 @@ fun ArtistDetailScreen(
                         PlaylistSongRow(
                             song = s,
                             onRowPlay = {                     // click cả dòng → play
-                                playerVM.playFromList(topSongs, index)
+                                playerVM.playFromOldList(topSongs, index)
                             },
                             onMoreClick = {                   // 3 chấm → vào SongView
                                 navController.navigate(MainRoute.songView(s.id))

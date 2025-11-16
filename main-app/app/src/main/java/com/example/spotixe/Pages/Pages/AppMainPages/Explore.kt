@@ -1,30 +1,37 @@
 package com.example.spotixe.Pages.Pages.AppMainPages
 
 import Components.Buttons.BackButton
-import Components.Bar.BottomBar
+import Components.Card.ApiRecentlyPlayedItem
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.spotixe.Data.recentlyPlayed
-import com.example.spotixe.Data.topPicks
-import Components.Layout.ExploreSection
-import androidx.compose.foundation.background
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Divider
-import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
 import com.example.spotixe.player.rememberPlayerVMActivity
+import com.example.spotixe.viewmodel.SongViewModel
 
 @Composable
 fun ExploreScreen(navController: NavHostController) {
+    val context = LocalContext.current
+    val songViewModel = remember { SongViewModel(context) }
+    val songs by songViewModel.songs.collectAsState()
+    val isLoading by songViewModel.isLoading.collectAsState()
+    
     val playerVM = rememberPlayerVMActivity()
 
     Box(
@@ -65,33 +72,82 @@ fun ExploreScreen(navController: NavHostController) {
                     }
 
                     Spacer(Modifier.height(4.dp))
-                    Divider(color = Color.White.copy(alpha = 0.2f))
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
                 }
 
                 // ---------- SECTION 1: HIT MỚI HÔM NAY ----------
                 item {
-                    ExploreSection(
-                        title = "Hit mới hôm nay",
-                        songs = recentlyPlayed,
-                        modifier = Modifier.padding(top = 12.dp),
-                        navController = navController
+                    Text(
+                        text = "Hit mới hôm nay",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                     )
+                }
 
+                if (isLoading && songs.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF1DB954))
+                        }
+                    }
+                } else {
+                    items(
+                        items = songs.take(10),
+                        key = { it.songId }
+                    ) { song ->
+                        ApiRecentlyPlayedItem(
+                            song = song,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                            onClickItem = {
+                                // Click vào bài hát → phát nhạc và mở full screen
+                                playerVM.playSong(song)
+                                navController.navigate("api_song_view/${song.songId}")
+                            }
+                        )
+                    }
+                }
+
+                item {
                     Spacer(Modifier.height(20.dp))
                 }
 
                 // ---------- SECTION 2: MỚI PHÁT HÀNH ----------
                 item {
-                    ExploreSection(
-                        title = "Mới phát hành",
-                        songs = topPicks,
-                        navController = navController
+                    Text(
+                        text = "Mới phát hành",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                     )
+                }
 
+                items(
+                    items = songs.drop(10).take(10),
+                    key = { it.songId }
+                ) { song ->
+                    ApiRecentlyPlayedItem(
+                        song = song,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        onClickItem = {
+                            // Click vào bài hát → phát nhạc và mở full screen
+                            playerVM.playSong(song)
+                            navController.navigate("api_song_view/${song.songId}")
+                        }
+                    )
+                }
+
+                item {
                     Spacer(Modifier.height(32.dp))
                 }
             }
         }
     }
 }
-

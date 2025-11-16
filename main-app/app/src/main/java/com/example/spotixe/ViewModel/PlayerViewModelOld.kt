@@ -1,4 +1,4 @@
-package com.example.spotixe.player
+package com.example.spotixe.player.old
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -25,7 +25,7 @@ data class PlayerUiState(
     val progress: Float get() = if (durationSec == 0) 0f else positionSec.toFloat() / durationSec
 }
 
-class PlayerViewModel : ViewModel() {
+class PlayerViewModelOld : ViewModel() {
     private val _ui = MutableStateFlow(PlayerUiState())
     val ui: StateFlow<PlayerUiState> = _ui
 
@@ -116,7 +116,7 @@ class PlayerViewModel : ViewModel() {
 }
 
 @Composable
-fun rememberPlayerVMActivity(): PlayerViewModel {
+fun rememberPlayerVMActivity(): PlayerViewModelOld {
     val owner = LocalContext.current as ViewModelStoreOwner
     return viewModel(owner) // scope Activity
 }

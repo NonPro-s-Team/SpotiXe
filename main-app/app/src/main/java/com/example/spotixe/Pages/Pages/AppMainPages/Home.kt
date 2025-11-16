@@ -4,7 +4,9 @@ import Components.Card.AlbumTile
 import Components.Bar.BottomBar
 import Components.Card.ArtistChip
 import Components.Card.PlaylistCard
+import Components.Card.ApiRecentlyPlayedItem
 import Components.Card.RecentlyPlayedItem
+import Components.Layout.ApiSongCardRow
 import Components.Layout.SongCardRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,14 +31,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,13 +51,18 @@ import androidx.navigation.NavHostController
 import com.example.spotixe.Data.AlbumRepository
 import com.example.spotixe.Data.ArtistRepository
 import com.example.spotixe.Data.PlaylistRepository
-import com.example.spotixe.Data.topPicks
-import com.example.spotixe.Data.recentlyPlayed
 import com.example.spotixe.MainRoute
+import com.example.spotixe.components.ApiRecentlyPlayedItem
 import com.example.spotixe.player.rememberPlayerVMActivity
+import com.example.spotixe.viewmodel.SongViewModel
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
+    val context = LocalContext.current
+    val songViewModel = remember { SongViewModel(context) }
+    val songs by songViewModel.songs.collectAsState()
+    val isLoading by songViewModel.isLoading.collectAsState()
+    
     val playerVM = rememberPlayerVMActivity()
 
     Box(
@@ -147,18 +159,33 @@ fun HomeScreen(navController: NavHostController) {
                 }
 
                 item {
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp)
-                    ) {
-                        itemsIndexed(topPicks) { _, s ->
-                            SongCardRow(
-                                song = s,
-                                navController = navController,
-                            )
+                    if (isLoading && songs.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF1DB954))
+                        }
+                    } else {
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp)
+                        ) {
+                            items(
+                                items = songs.take(10),
+                                key = { it.songId }
+                            ) { song ->
+                                ApiSongCardRow(
+                                    song = song,
+                                    navController = navController,
+                                    playerViewModel = playerVM  // Truyền playerVM để tự động phát nhạc
+                                )
+                            }
                         }
                     }
 
@@ -194,17 +221,16 @@ fun HomeScreen(navController: NavHostController) {
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = PaddingValues(horizontal = 12.dp)
                     ) {
-                        itemsIndexed(
-                            items = recentlyPlayed,
-                            key = { _, it -> it.id }
-                        ) { index, song ->
-                            RecentlyPlayedItem(
+                        items(
+                            items = songs.take(20),
+                            key = { it.songId }
+                        ) { song ->
+                            ApiRecentlyPlayedItem(
                                 song = song,
-                                onClickItem = {
-                                    navController.navigate(MainRoute.songView(song.id))
-                                },
-                                onPlayClick = {
-                                    playerVM.playFromList(recentlyPlayed, index)
+                                onClick = {
+                                    // Click vào item → phát nhạc và mở full screen
+                                    playerVM.playSong(song)
+                                    navController.navigate("api_song_view/${song.songId}")
                                 }
                             )
                         }
@@ -350,4 +376,3 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
 }
-

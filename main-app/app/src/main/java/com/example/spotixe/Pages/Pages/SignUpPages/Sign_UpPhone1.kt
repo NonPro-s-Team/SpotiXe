@@ -51,9 +51,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.spotixe.AuthRoute
+import com.example.spotixe.Graph
 import com.example.spotixe.R
 import com.example.spotixe.services.startPhoneVerification
 import com.example.spotixe.services.normalizeVietnamPhone
+import Components.Buttons.GoogleSignInButtonFirebase
 
 @Composable
 fun Sign_UpPhone1Screen(navController: NavController){
@@ -210,20 +212,17 @@ fun Sign_UpPhone1Screen(navController: NavController){
 
             Spacer(modifier = Modifier.height(15.dp))
 
-            Box(
-                modifier = Modifier
-                    .size(width = 100.dp, height = 50.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFEDEDED))
-                    .clickable { println("Sign un with Google clicked") },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.google_logo),
-                    contentDescription = "Google Logo",
-                    modifier = Modifier.size(30.dp)
-                )
-            }
+            GoogleSignInButtonFirebase(
+                onSuccess = { loginResponse ->
+                    navController.navigate(Graph.MAIN) {
+                        popUpTo(Graph.AUTH) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onError = { error ->
+                    // Error handled with Toast
+                }
+            )
 
             Spacer(modifier = Modifier.height(25.dp))
 
