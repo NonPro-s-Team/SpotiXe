@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -46,9 +45,12 @@ fun QueueScreen(
 ) {
     val playerVM = rememberPlayerVMActivity()
     var isLiked by remember { mutableStateOf(false) }
-    var isPlaying by remember { mutableStateOf(true) }
-    var position by remember { mutableStateOf(0.2f) }
-    val ui by playerVM.ui.collectAsState()
+
+    val isPlaying by playerVM.isPlaying.collectAsState()
+    val progress by playerVM.progress.collectAsState()
+    val currentPosition by playerVM.currentPosition.collectAsState()
+    val duration by playerVM.duration.collectAsState()
+
     Scaffold(
         containerColor = Color(0xFF121212),
         contentWindowInsets = WindowInsets(0)
@@ -111,15 +113,6 @@ fun QueueScreen(
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color(0xFF58BA47), shape = RoundedCornerShape(8.dp))
                     )
-
-//                    IconButton(onClick = { /* lyrics */ }) {
-//                        Icon(
-//                            imageVector = androidx.compose.material.icons.Icons.Outlined.LibraryBooks,
-//                            contentDescription = null,
-//                            tint = Color(0xFF58BA47),
-//                            modifier = Modifier.size(34.dp)
-//                        )
-//                    }
                 }
             }
 
@@ -152,10 +145,10 @@ fun QueueScreen(
                 Spacer(Modifier.height(8.dp))
 
                 ScrubbableProgressBar(
-                    progress    = ui.progress,
+                    progress    = progress,
                     onSeek      = { p -> playerVM.seekTo(p) },
-                    onSeekStart = { playerVM.beginSeek() },
-                    onSeekEnd   = { playerVM.endSeek() },
+                    onSeekStart = { /* Not needed anymore */ },
+                    onSeekEnd   = { /* Not needed anymore */ },
                     height      = 8.dp,
                     modifier    = Modifier
                         .fillMaxWidth()
@@ -163,9 +156,9 @@ fun QueueScreen(
                 )
 
                 Row(Modifier.fillMaxWidth()) {
-                    Text(formatTime((position * 286).toInt()), color = Color.White.copy(0.7f), fontSize = 12.sp)
+                    Text(formatTimeMs(currentPosition), color = Color.White.copy(0.7f), fontSize = 12.sp)
                     Spacer(Modifier.weight(1f))
-                    Text("-" + formatTime(286 - (position * 286).toInt()), color = Color.White.copy(0.7f), fontSize = 12.sp)
+                    Text(formatTimeMs(duration - currentPosition), color = Color.White.copy(0.7f), fontSize = 12.sp)
                 }
 
                 Spacer(Modifier.height(4.dp))
@@ -177,24 +170,24 @@ fun QueueScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = { /* prev */ }) {
+                    IconButton(onClick = { playerVM.playPrevious() }) {
                         Icon(Icons.Filled.SkipPrevious, null, tint = Color.White, modifier = Modifier.size(28.dp))
                     }
-                    FilledTonalButton(
-                        onClick = { isPlaying = !isPlaying },
-                        colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color.White),
+                    FilledIconButton(
+                        onClick = { playerVM.togglePlayPause() },
                         modifier = Modifier.size(64.dp),
-                        shape = CircleShape,
-                        contentPadding = PaddingValues(0.dp)
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = Color(0xFF1DB954),
+                            contentColor = Color.Black
+                        )
                     ) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                             contentDescription = null,
-                            tint = Color.Black,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(36.dp)
                         )
                     }
-                    IconButton(onClick = { /* next */ }) {
+                    IconButton(onClick = { playerVM.playNext() }) {
                         Icon(Icons.Filled.SkipNext, null, tint = Color.White, modifier = Modifier.size(28.dp))
                     }
                 }
@@ -230,8 +223,9 @@ private fun NextRow(song: Song, onClick: () -> Unit) {
     }
 }
 
-private fun formatTime(sec: Int): String {
-    val m = sec / 60
-    val s = sec % 60
+private fun formatTimeMs(ms: Long): String {
+    val totalSec = (ms / 1000).toInt()
+    val m = totalSec / 60
+    val s = totalSec % 60
     return "%d:%02d".format(m, s)
 }

@@ -103,7 +103,7 @@ fun PlaylistDetailScreen(
                         PlaylistSongRow(
                             song = s,
                             onRowPlay = {                     // click cả dòng → play
-                                playerVM.playFromList(songs, index)
+                                playerVM.playFromOldList(songs, index)
                             },
                             onMoreClick = {                   // 3 chấm → vào SongView
                                 navController.navigate(MainRoute.songView(s.id))
@@ -116,4 +116,3 @@ fun PlaylistDetailScreen(
         }
     }
 }
-

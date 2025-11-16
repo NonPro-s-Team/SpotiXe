@@ -36,14 +36,11 @@ fun SongViewScreen(
     song: Song
 ) {
     val playerVM = rememberPlayerVMActivity()
-    val ui by playerVM.ui.collectAsState()
 
-    // (Tuỳ chọn) đảm bảo vào SongView là đang play đúng bài
-    LaunchedEffect(song.id) {
-        if (ui.current?.id != song.id) {
-            playerVM.play(song)
-        }
-    }
+    val isPlaying by playerVM.isPlaying.collectAsState()
+    val progress by playerVM.progress.collectAsState()
+    val currentPosition by playerVM.currentPosition.collectAsState()
+    val duration by playerVM.duration.collectAsState()
 
     var isLiked by remember { mutableStateOf(false) }
 
@@ -113,10 +110,10 @@ fun SongViewScreen(
 
             //ScrubbableProgressBar
             ScrubbableProgressBar(
-                progress    = ui.progress,
+                progress    = progress,
                 onSeek      = { p -> playerVM.seekTo(p) },
-                onSeekStart = { playerVM.beginSeek() },
-                onSeekEnd   = { playerVM.endSeek() },
+                onSeekStart = { /* Not needed anymore */ },
+                onSeekEnd   = { /* Not needed anymore */ },
                 height      = 8.dp,
                 modifier    = Modifier
                     .fillMaxWidth()
@@ -124,14 +121,13 @@ fun SongViewScreen(
             )
             Row(Modifier.fillMaxWidth()) {
                 Text(
-                    formatTime(ui.positionSec),
+                    formatTimeMs(currentPosition),
                     color = Color.White.copy(0.7f),
                     fontSize = 12.sp
                 )
                 Spacer(Modifier.weight(1f))
-                val remain = max(0, ui.durationSec - ui.positionSec)
                 Text(
-                    "-${formatTime(remain)}",
+                    formatTimeMs(duration - currentPosition),
                     color = Color.White.copy(0.7f),
                     fontSize = 12.sp
                 )
@@ -147,7 +143,7 @@ fun SongViewScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { playerVM.prev() }) {
+                IconButton(onClick = { playerVM.playPrevious() }) {
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
                         contentDescription = null,
@@ -156,20 +152,20 @@ fun SongViewScreen(
                     )
                 }
                 FilledTonalButton(
-                    onClick = { playerVM.toggle() },
+                    onClick = { playerVM.togglePlayPause() },
                     colors = ButtonDefaults.filledTonalButtonColors(containerColor = Color.White),
                     modifier = Modifier.size(64.dp),
                     shape = CircleShape,
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Icon(
-                        imageVector = if (ui.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = if (ui.isPlaying) "Pause" else "Play",
+                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPlaying) "Pause" else "Play",
                         tint = Color.Black,
                         modifier = Modifier.size(40.dp)
                     )
                 }
-                IconButton(onClick = { playerVM.next() }) {
+                IconButton(onClick = { playerVM.playNext() }) {
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = null,
@@ -179,38 +175,41 @@ fun SongViewScreen(
                 }
             }
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(8.dp))
 
-            // Actions (like / queue)
+            // Like + Queue buttons
             Row(
-                Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 IconButton(onClick = { isLiked = !isLiked }) {
                     Icon(
                         imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = if (isLiked) "Liked" else "Not liked",
-                        tint = Color(0xFF58BA47),
+                        tint = if (isLiked) Color(0xFFFF4444) else Color.White,
                         modifier = Modifier.size(34.dp)
                     )
                 }
-                Image(
-                    painter = painterResource(com.example.spotixe.R.drawable.list),
-                    contentDescription = "playlist",
-                    modifier = Modifier
-                        .size(34.dp)
-                        .clickable { navController.navigate(MainRoute.playlist(song.id)) }
-                        .offset(y = 8.dp)
-                )
+                IconButton(
+                    onClick = { /* TODO: Queue */ }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.QueueMusic,
+                        contentDescription = "Queue",
+                        tint = Color.White,
+                        modifier = Modifier.size(34.dp)
+                    )
+                }
             }
-
-            Spacer(Modifier.height(8.dp))
         }
     }
 }
 
-private fun formatTime(sec: Int): String {
-    val m = sec / 60
-    val s = sec % 60
+private fun formatTimeMs(ms: Long): String {
+    val totalSec = (ms / 1000).toInt()
+    val m = totalSec / 60
+    val s = totalSec % 60
     return "%d:%02d".format(m, s)
 }
