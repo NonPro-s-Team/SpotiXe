@@ -1,5 +1,6 @@
 package com.example.spotixe.Pages.Pages.AppMainPages
 
+import Components.Bar.ScrubbableProgressBar
 import Components.Buttons.BackButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.spotixe.R
@@ -182,15 +184,15 @@ fun ApiSongViewScreen(
                         Spacer(Modifier.height(16.dp))
 
                         // Progress slider
-                        Slider(
-                            value = progress,
-                            onValueChange = { playerViewModel.seekTo(it) },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = SliderDefaults.colors(
-                                thumbColor = Color.White,
-                                activeTrackColor = Color.White,
-                                inactiveTrackColor = Color.White.copy(alpha = 0.3f)
-                            )
+                        ScrubbableProgressBar(
+                            progress    = progress,
+                            onSeek      = { p -> playerViewModel.seekTo(p) },
+                            onSeekStart = { },
+                            onSeekEnd   = { },
+                            height      = 8.dp,
+                            modifier    = Modifier
+                                .fillMaxWidth()
+                                .zIndex(1f)
                         )
 
                         // Time labels
@@ -204,7 +206,7 @@ fun ApiSongViewScreen(
                                 fontSize = 12.sp
                             )
                             Text(
-                                formatTimeMs(duration),
+                                "-${formatTimeMs(maxOf(0, duration - currentPosition))}",
                                 color = Color.White.copy(0.7f),
                                 fontSize = 12.sp
                             )
@@ -225,8 +227,8 @@ fun ApiSongViewScreen(
                                 Icon(
                                     imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                                     contentDescription = if (isLiked) "Liked" else "Not liked",
-                                    tint = if (isLiked) Color(0xFFFF4444) else Color.White,
-                                    modifier = Modifier.size(32.dp)
+                                    tint = Color(0xFF58BA47),
+                                    modifier = Modifier.size(34.dp)
                                 )
                             }
 
@@ -240,14 +242,14 @@ fun ApiSongViewScreen(
                                     }
                                 },
                                 colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = Color.White
+                                    containerColor = Color(0xFF58BA47)
                                 ),
                                 modifier = Modifier.size(72.dp),
                                 shape = CircleShape,
                                 contentPadding = PaddingValues(0.dp)
                             ) {
                                 Icon(
-                                    imageVector = if (isPlaying && currentSong?.songId == song!!.songId) 
+                                    imageVector = if (isPlaying && currentSong?.songId == song!!.songId)
                                         Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                     contentDescription = if (isPlaying) "Pause" else "Play",
                                     tint = Color.Black,
@@ -258,9 +260,9 @@ fun ApiSongViewScreen(
                             // Add to playlist button
                             IconButton(onClick = { /* TODO */ }) {
                                 Icon(
-                                    painter = painterResource(R.drawable.list),
-                                    contentDescription = "Add to playlist",
-                                    tint = Color.White,
+                                    painter = painterResource(com.example.spotixe.R.drawable.list),
+                                    contentDescription = "playlist",
+                                    tint = Color(0xFF58BA47),
                                     modifier = Modifier.size(32.dp)
                                 )
                             }

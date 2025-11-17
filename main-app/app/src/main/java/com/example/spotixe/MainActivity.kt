@@ -101,15 +101,15 @@ class MainActivity : ComponentActivity() {
                     !isApiSongView  // Ẩn nếu đang ở màn hình full screen player
 
                 Scaffold(
-                    containerColor = Color.Black,
+                    containerColor = Color(0xFF121212),
                     bottomBar = { if (showBottomBar) BottomBar(navController) }
                 ) { inner ->
                     Box(Modifier.fillMaxSize()) {
                         // ----- NAV HOST -----
                         // Determine start destination based on login status
                         val isLoggedIn by authVM.isLoggedIn.collectAsState()
-                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
-//                        val startDest = Graph.AUTH
+//                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
+                        val startDest = Graph.MAIN
 
                         NavHost(
                             navController = navController,
@@ -286,6 +286,15 @@ class MainActivity : ComponentActivity() {
                                     playerVM.currentSong.value?.songId?.let { songId ->
                                         navController.navigate("api_song_view/$songId")
                                     }
+                                },
+                                onSeek = { newProgress ->
+                                    playerVM.seekTo(newProgress)
+                                },
+                                onSeekStart = {
+                                    playerVM.pauseForSeeking()
+                                },
+                                onSeekEnd = {
+                                    playerVM.resumeAfterSeeking()
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)

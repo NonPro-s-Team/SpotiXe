@@ -1,10 +1,8 @@
-// SongViewScreen.kt
 package com.example.spotixe.Pages.Pages.AppMainPages
 
 import Components.Bar.ScrubbableProgressBar
 import Components.Buttons.BackButton
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -28,7 +26,6 @@ import androidx.navigation.NavHostController
 import com.example.spotixe.Data.Song
 import com.example.spotixe.MainRoute
 import com.example.spotixe.player.rememberPlayerVMActivity
-import kotlin.math.max
 
 @Composable
 fun SongViewScreen(
@@ -112,8 +109,8 @@ fun SongViewScreen(
             ScrubbableProgressBar(
                 progress    = progress,
                 onSeek      = { p -> playerVM.seekTo(p) },
-                onSeekStart = { /* Not needed anymore */ },
-                onSeekEnd   = { /* Not needed anymore */ },
+                onSeekStart = { },
+                onSeekEnd   = { },
                 height      = 8.dp,
                 modifier    = Modifier
                     .fillMaxWidth()
@@ -127,7 +124,7 @@ fun SongViewScreen(
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
-                    formatTimeMs(duration - currentPosition),
+                    "-${formatTimeMs(duration - currentPosition)}",
                     color = Color.White.copy(0.7f),
                     fontSize = 12.sp
                 )
@@ -175,34 +172,32 @@ fun SongViewScreen(
                 }
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(4.dp))
 
-            // Like + Queue buttons
+            // Actions (like / queue)
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 IconButton(onClick = { isLiked = !isLiked }) {
                     Icon(
                         imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                         contentDescription = if (isLiked) "Liked" else "Not liked",
-                        tint = if (isLiked) Color(0xFFFF4444) else Color.White,
+                        tint = Color(0xFF58BA47),
                         modifier = Modifier.size(34.dp)
                     )
                 }
-                IconButton(
-                    onClick = { /* TODO: Queue */ }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.QueueMusic,
-                        contentDescription = "Queue",
-                        tint = Color.White,
-                        modifier = Modifier.size(34.dp)
-                    )
-                }
+                Image(
+                    painter = painterResource(com.example.spotixe.R.drawable.list),
+                    contentDescription = "playlist",
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clickable { navController.navigate(MainRoute.playlist(song.id)) }
+                        .offset(y = 8.dp)
+                )
             }
+
+            Spacer(Modifier.height(8.dp))
         }
     }
 }

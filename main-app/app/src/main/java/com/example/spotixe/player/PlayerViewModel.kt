@@ -285,7 +285,30 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     fun seekToPosition(positionMs: Long) {
         mediaController?.seekTo(positionMs)
     }
-    
+
+    /**
+     * Pause for seeking (save previous state)
+     */
+    private var wasPlayingBeforeSeek = false
+
+    fun pauseForSeeking() {
+        mediaController?.let {
+            wasPlayingBeforeSeek = it.isPlaying
+            if (it.isPlaying) {
+                it.pause()
+            }
+        }
+    }
+
+    /**
+     * Resume after seeking if it was playing before
+     */
+    fun resumeAfterSeeking() {
+        if (wasPlayingBeforeSeek) {
+            mediaController?.play()
+        }
+    }
+
     private fun startProgressUpdate() {
         progressJob?.cancel()
         progressJob = viewModelScope.launch {

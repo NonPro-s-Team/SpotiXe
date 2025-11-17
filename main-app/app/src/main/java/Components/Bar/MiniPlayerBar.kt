@@ -9,8 +9,6 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import com.example.spotixe.player.PlayerViewModel
 import com.example.spotixe.Data.model.Song
@@ -32,6 +31,9 @@ import com.example.spotixe.Data.model.Song
 fun MiniPlayerBar(
     playerViewModel: PlayerViewModel,
     onOpenSongView: () -> Unit,
+    onSeek: (Float) -> Unit,
+    onSeekStart: () -> Unit,
+    onSeekEnd: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Collect state from the ViewModel using delegated properties with explicit initial values
@@ -47,20 +49,12 @@ fun MiniPlayerBar(
             .fillMaxWidth()
             .background(Color(0xFF1E1E1E), shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
     ) {
-        // Progress bar
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier.fillMaxWidth().height(3.dp),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = Color.White.copy(alpha = 0.2f)
-        )
-        
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
-                .clickable { onOpenSongView() }
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .height(56.dp)
+                .padding(horizontal = 12.dp)
+                .clickable { onOpenSongView() },
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Cover image from API
@@ -68,13 +62,13 @@ fun MiniPlayerBar(
                 model = song.coverImageUrl,
                 contentDescription = song.title,
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(6.dp)),
                 contentScale = ContentScale.Crop
             )
             
-            Spacer(Modifier.width(12.dp))
-            
+            Spacer(Modifier.width(10.dp))
+
             // Song info
             Column(Modifier.weight(1f)) {
                 Text(
@@ -85,12 +79,12 @@ fun MiniPlayerBar(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.height(2.dp))
                 Text(
-                    text = song.getFormattedDuration(),
-                    color = Color.White.copy(alpha = 0.7f),
+                    text = song.genre ?: "Artist",
+                    color = Color.White.copy(alpha = 0.8f),
                     fontSize = 12.sp,
-                    maxLines = 1
+                    maxLines = 1,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
             
@@ -99,10 +93,20 @@ fun MiniPlayerBar(
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     contentDescription = if (isPlaying) "Pause" else "Play",
-                    tint = Color.White,
-                    modifier = Modifier.size(32.dp)
+                    tint = Color.White
                 )
             }
         }
+
+        ScrubbableProgressBar(
+            progress = progress,
+            onSeek = onSeek,
+            onSeekStart = onSeekStart,
+            onSeekEnd = onSeekEnd,
+            height = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .zIndex(1f)
+        )
     }
 }

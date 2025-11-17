@@ -1,9 +1,7 @@
 package com.example.spotixe.Pages.Pages.AppMainPages
 
 import Components.Buttons.BackButton
-import Components.Bar.BottomBar
 import Components.Card.ApiRecentlyPlayedItem
-import Components.Card.GenresSection
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,11 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -41,8 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.spotixe.Data.genres
-import com.example.spotixe.MainRoute
 import com.example.spotixe.player.rememberPlayerVMActivity
 import com.example.spotixe.viewmodel.SongViewModel
 
@@ -104,7 +101,7 @@ fun SearchScreen(
                 }
 
                 Spacer(Modifier.height(8.dp))
-                Divider(color = Color.White.copy(alpha = 0.2f))
+                HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
                 Spacer(Modifier.height(16.dp))
 
 
@@ -136,56 +133,51 @@ fun SearchScreen(
                 Spacer(Modifier.height(16.dp))
 
                 //body
-                LazyColumn(
-                    contentPadding = PaddingValues(bottom = 100.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (text.isNotBlank()) {
-                        // Show search results
-                        item {
+                if (text.isNotBlank()) {
+                    // Show search results
+                    Text(
+                        text = "Kết quả tìm kiếm (${filteredSongs.size})",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+
+                    if (isLoading && filteredSongs.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF1DB954))
+                        }
+                    } else if (filteredSongs.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                text = "Kết quả tìm kiếm (${filteredSongs.size})",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                text = "Không tìm thấy kết quả",
+                                color = Color.Gray,
+                                fontSize = 16.sp
                             )
                         }
-                        
-                        if (isLoading && filteredSongs.isEmpty()) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(color = Color(0xFF1DB954))
-                                }
-                            }
-                        } else if (filteredSongs.isEmpty()) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "Không tìm thấy kết quả",
-                                        color = Color.Gray,
-                                        fontSize = 16.sp
-                                    )
-                                }
-                            }
-                        } else {
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(3),
+                            contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 100.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             items(
                                 items = filteredSongs,
                                 key = { it.songId }
                             ) { song ->
                                 ApiRecentlyPlayedItem(
                                     song = song,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                                     onClickItem = {
                                         // Click vào bài hát → phát nhạc và mở full screen
                                         playerVM.playSong(song)
@@ -194,37 +186,39 @@ fun SearchScreen(
                                 )
                             }
                         }
-                    } else {
-                        // Show all songs when no search query
-                        item {
-                            Text(
-                                text = "Tất cả bài hát",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
+                    }
+                } else {
+                    // Show all songs when no search query
+                    Text(
+                        text = "Tất cả bài hát",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+
+                    if (isLoading && songs.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF1DB954))
                         }
-                        
-                        if (isLoading && songs.isEmpty()) {
-                            item {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(200.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(color = Color(0xFF1DB954))
-                                }
-                            }
-                        } else {
+                    } else {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(3),
+                            contentPadding = PaddingValues(start = 8.dp, end = 8.dp, bottom = 100.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             items(
                                 items = songs,
                                 key = { it.songId }
                             ) { song ->
                                 ApiRecentlyPlayedItem(
                                     song = song,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                                     onClickItem = {
                                         // Click vào bài hát → phát nhạc và mở full screen
                                         playerVM.playSong(song)

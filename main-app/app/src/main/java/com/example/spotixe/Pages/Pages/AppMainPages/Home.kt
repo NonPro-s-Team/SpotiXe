@@ -1,18 +1,15 @@
 package com.example.spotixe.Pages.Pages.AppMainPages
 
 import Components.Card.AlbumTile
-import Components.Bar.BottomBar
 import Components.Card.ArtistChip
 import Components.Card.PlaylistCard
 import Components.Card.ApiRecentlyPlayedItem
 import Components.Card.RecentlyPlayedItem
 import Components.Layout.ApiSongCardRow
-import Components.Layout.SongCardRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,13 +23,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -52,7 +46,6 @@ import com.example.spotixe.Data.AlbumRepository
 import com.example.spotixe.Data.ArtistRepository
 import com.example.spotixe.Data.PlaylistRepository
 import com.example.spotixe.MainRoute
-import com.example.spotixe.components.ApiRecentlyPlayedItem
 import com.example.spotixe.player.rememberPlayerVMActivity
 import com.example.spotixe.viewmodel.SongViewModel
 
@@ -116,7 +109,7 @@ fun HomeScreen(navController: NavHostController) {
                         }
                     }
 
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
@@ -227,7 +220,7 @@ fun HomeScreen(navController: NavHostController) {
                         ) { song ->
                             ApiRecentlyPlayedItem(
                                 song = song,
-                                onClick = {
+                                onClickItem = {
                                     // Click vào item → phát nhạc và mở full screen
                                     playerVM.playSong(song)
                                     navController.navigate("api_song_view/${song.songId}")

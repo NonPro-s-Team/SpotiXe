@@ -5,6 +5,9 @@ import Components.Card.ApiRecentlyPlayedItem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -98,19 +101,30 @@ fun ExploreScreen(navController: NavHostController) {
                         }
                     }
                 } else {
-                    items(
-                        items = songs.take(10),
-                        key = { it.songId }
-                    ) { song ->
-                        ApiRecentlyPlayedItem(
-                            song = song,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                            onClickItem = {
-                                // Click vào bài hát → phát nhạc và mở full screen
-                                playerVM.playSong(song)
-                                navController.navigate("api_song_view/${song.songId}")
+                    item {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(3),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
+                            userScrollEnabled = false
+                        ) {
+                            items(
+                                items = songs.take(10),
+                                key = { it.songId }
+                            ) { song ->
+                                ApiRecentlyPlayedItem(
+                                    song = song,
+                                    onClickItem = {
+                                        // Click vào bài hát → phát nhạc và mở full screen
+                                        playerVM.playSong(song)
+                                        navController.navigate("api_song_view/${song.songId}")
+                                    }
+                                )
                             }
-                        )
+                        }
                     }
                 }
 
@@ -129,19 +143,30 @@ fun ExploreScreen(navController: NavHostController) {
                     )
                 }
 
-                items(
-                    items = songs.drop(10).take(10),
-                    key = { it.songId }
-                ) { song ->
-                    ApiRecentlyPlayedItem(
-                        song = song,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                        onClickItem = {
-                            // Click vào bài hát → phát nhạc và mở full screen
-                            playerVM.playSong(song)
-                            navController.navigate("api_song_view/${song.songId}")
+                item {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        userScrollEnabled = false
+                    ) {
+                        items(
+                            items = songs.drop(10).take(10),
+                            key = { it.songId }
+                        ) { song ->
+                            ApiRecentlyPlayedItem(
+                                song = song,
+                                onClickItem = {
+                                    // Click vào bài hát → phát nhạc và mở full screen
+                                    playerVM.playSong(song)
+                                    navController.navigate("api_song_view/${song.songId}")
+                                }
+                            )
                         }
-                    )
+                    }
                 }
 
                 item {
