@@ -5,9 +5,6 @@ import Components.Card.ApiRecentlyPlayedItem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -101,28 +98,33 @@ fun ExploreScreen(navController: NavHostController) {
                         }
                     }
                 } else {
-                    item {
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(3),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                    // Grid layout for first 10 songs using chunked items
+                    val hitSongs = songs.take(10)
+                    val chunkedHitSongs = hitSongs.chunked(3)
+
+                    items(chunkedHitSongs) { rowSongs ->
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .wrapContentHeight(),
-                            userScrollEnabled = false
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(
-                                items = songs.take(10),
-                                key = { it.songId }
-                            ) { song ->
-                                ApiRecentlyPlayedItem(
-                                    song = song,
-                                    onClickItem = {
-                                        // Click vào bài hát → phát nhạc và mở full screen
-                                        playerVM.playSong(song)
-                                        navController.navigate("api_song_view/${song.songId}")
-                                    }
-                                )
+                            rowSongs.forEach { song ->
+                                Box(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    ApiRecentlyPlayedItem(
+                                        song = song,
+                                        onClickItem = {
+                                            playerVM.playSong(song)
+                                            navController.navigate("api_song_view/${song.songId}")
+                                        }
+                                    )
+                                }
+                            }
+                            // Fill empty spaces in incomplete rows
+                            repeat(3 - rowSongs.size) {
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     }
@@ -143,28 +145,33 @@ fun ExploreScreen(navController: NavHostController) {
                     )
                 }
 
-                item {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(3),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                // Grid layout for next 10 songs using chunked items
+                val newReleaseSongs = songs.drop(10).take(10)
+                val chunkedNewSongs = newReleaseSongs.chunked(3)
+
+                items(chunkedNewSongs) { rowSongs ->
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .wrapContentHeight(),
-                        userScrollEnabled = false
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(
-                            items = songs.drop(10).take(10),
-                            key = { it.songId }
-                        ) { song ->
-                            ApiRecentlyPlayedItem(
-                                song = song,
-                                onClickItem = {
-                                    // Click vào bài hát → phát nhạc và mở full screen
-                                    playerVM.playSong(song)
-                                    navController.navigate("api_song_view/${song.songId}")
-                                }
-                            )
+                        rowSongs.forEach { song ->
+                            Box(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                ApiRecentlyPlayedItem(
+                                    song = song,
+                                    onClickItem = {
+                                        playerVM.playSong(song)
+                                        navController.navigate("api_song_view/${song.songId}")
+                                    }
+                                )
+                            }
+                        }
+                        // Fill empty spaces in incomplete rows
+                        repeat(3 - rowSongs.size) {
+                            Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }

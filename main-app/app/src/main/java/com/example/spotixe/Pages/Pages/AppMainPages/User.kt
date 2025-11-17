@@ -33,9 +33,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,7 +69,14 @@ fun UserScreen(navController: NavHostController) {
     val scope = rememberCoroutineScope()
     val authDataStore = AuthDataStore(context)
     val userData by authDataStore.getUserData().collectAsState(initial = null)
-    
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Set loading to false after a short delay to show content
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(500)
+        isLoading = false
+    }
+
     val playerVM = rememberPlayerVMActivity()
     val playlists = listOf(
         PlaylistUi("LoL songs", "17 Songs", R.drawable.spotixe_logo),
@@ -83,7 +94,7 @@ fun UserScreen(navController: NavHostController) {
             containerColor = Color.Transparent,
             contentWindowInsets = WindowInsets(0),
         ) { inner ->
-            if (userData == null) {
+            if (isLoading) {
                 // Loading state
                 Box(
                     modifier = Modifier
@@ -145,7 +156,7 @@ fun UserScreen(navController: NavHostController) {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             // Avatar
-                            if (userData?.avatarUrl != null) {
+                            if (userData?.avatarUrl != null && userData?.avatarUrl?.isNotEmpty() == true) {
                                 AsyncImage(
                                     model = ImageRequest.Builder(context)
                                         .data(userData?.avatarUrl)
@@ -175,7 +186,7 @@ fun UserScreen(navController: NavHostController) {
                             }
                             
                             Text(
-                                userData?.username ?: "User",
+                                userData?.username ?: userData?.email?.substringBefore("@") ?: "User",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White,
