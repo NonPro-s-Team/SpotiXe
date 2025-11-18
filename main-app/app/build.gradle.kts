@@ -56,6 +56,18 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.androidx.compose.runtime)
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.material3)
+    
+    // Media3 ExoPlayer
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-ui:1.4.1")
+    implementation("androidx.media3:media3-session:1.4.1")
+    implementation("androidx.media3:media3-common:1.4.1")
+    
+    implementation ("com.google.dagger:hilt-android:2.57.1") // Use the latest version
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.38")
@@ -71,6 +83,22 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-auth:21.2.0")
 
+    // Retrofit & OkHttp
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
 
+    // DataStore
+    implementation(libs.datastore.preferences)
 
+    // Coroutines
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
+
+    // ViewModel Compose
+    implementation(libs.lifecycle.viewmodel.compose)
+
+    // Coil for image loading
+    implementation(libs.coil.compose)
 }

@@ -24,7 +24,7 @@ public class UsersController : ControllerBase
         IQueryable<User> query = _context.Users.AsNoTracking();
         if (!includeDeleted)
         {
-            query = query.Where(x => x.IsActive == 1UL);
+            query = query.Where(x => x.IsActive);
         }
         var results = await query
             .Select(u => new
@@ -82,7 +82,7 @@ public class UsersController : ControllerBase
             PhoneNumber = request.PhoneNumber,
             FirebaseUid = request.FirebaseUid,
             AvatarUrl = request.AvatarUrl,
-            IsActive = 1UL,
+            IsActive = true,
             CreatedAt = now,
             CreatedById = userId,
             CreatedByName = string.IsNullOrWhiteSpace(userNameHeader) ? null : userNameHeader
@@ -136,9 +136,9 @@ public class UsersController : ControllerBase
         var entity = await _context.Users.FirstOrDefaultAsync(x => x.UserId == id, cancellationToken);
         if (entity == null) return NotFound();
 
-        if (entity.IsActive == 1UL)
+        if (entity.IsActive)
         {
-            entity.IsActive = 0UL;
+            entity.IsActive = false;
             entity.DeletedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
         }

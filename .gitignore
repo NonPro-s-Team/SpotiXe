@@ -343,3 +343,5 @@ firebase-debug.log
 .env
 
 output/
+
+google-services.json

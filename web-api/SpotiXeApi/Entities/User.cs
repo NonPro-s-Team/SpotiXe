@@ -17,7 +17,7 @@ public partial class User
 
     public string? AvatarUrl { get; set; }
 
-    public ulong IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public DateTime? DeletedAt { get; set; }
 
