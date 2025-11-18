@@ -1,3 +1,5 @@
+CREATE DATABASE spotixe;
+USE spotixe;
 -- ==============================
 -- 1. Bảng Users
 -- ==============================
