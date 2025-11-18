@@ -85,8 +85,8 @@ class MainActivity : ComponentActivity() {
 
                 val showBottomBar =
                     dest.isInGraph(Graph.MAIN) &&
-                    dest?.route !in hideBottomOnRoutes &&
-                    !isApiSongView  // Ẩn bottom bar khi đang ở màn hình api song view
+                            dest?.route !in hideBottomOnRoutes &&
+                            !isApiSongView  // Ẩn bottom bar khi đang ở màn hình api song view
 
                 // (Tuỳ chọn) Ẩn MiniPlayerBar ở một vài màn full-screen
                 val hideMiniOnRoutes = setOf(
@@ -97,8 +97,8 @@ class MainActivity : ComponentActivity() {
 
                 val showMini =
                     dest.isInGraph(Graph.MAIN) &&
-                    dest?.route !in hideMiniOnRoutes &&
-                    !isApiSongView  // Ẩn nếu đang ở màn hình full screen player
+                            dest?.route !in hideMiniOnRoutes &&
+                            !isApiSongView  // Ẩn nếu đang ở màn hình full screen player
 
                 Scaffold(
                     containerColor = Color(0xFF121212),
@@ -109,28 +109,19 @@ class MainActivity : ComponentActivity() {
                         // Determine start destination based on login status
                         val isLoggedIn by authVM.isLoggedIn.collectAsState()
 //                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
-                        val startDest = Graph.MAIN
+                        val startDest = Graph.AUTH
 
                         NavHost(
                             navController = navController,
-<<<<<<< HEAD
-                            startDestination = Graph.MAIN,
-=======
                             startDestination = startDest,
->>>>>>> dcf3eadf7c68743f32c3b3dd1dd6575878b569f8
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(inner)
                         ) {
                             // START GRAPH
                             navigation(
-<<<<<<< HEAD
-                                startDestination = StartRoute.Start1,
-                                route = Graph.MAIN
-=======
                                 startDestination = StartRoute.Start3,
                                 route = Graph.START
->>>>>>> dcf3eadf7c68743f32c3b3dd1dd6575878b569f8
                             ) {
                                 composable(StartRoute.Start1) { StartScreen(navController) }
                                 composable(StartRoute.Start2) { Start2Screen(navController) }
@@ -307,11 +298,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .padding(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        bottom = inner.calculateBottomPadding() + 8.dp
-                                    )
+                                    .padding(start = 16.dp, end = 16.dp, bottom = inner.calculateBottomPadding() + 8.dp)
                             )
                         }
 
