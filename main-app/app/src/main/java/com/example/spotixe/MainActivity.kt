@@ -109,7 +109,7 @@ class MainActivity : ComponentActivity() {
                         // Determine start destination based on login status
                         val isLoggedIn by authVM.isLoggedIn.collectAsState()
 //                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
-                        val startDest = Graph.MAIN
+                        val startDest = Graph.AUTH
 
                         NavHost(
                             navController = navController,
@@ -130,7 +130,7 @@ class MainActivity : ComponentActivity() {
 
                             // AUTH GRAPH
                             navigation(
-                                startDestination = AuthRoute.SignIn1,
+                                startDestination = AuthRoute.SignUpPhone1,
                                 route = Graph.AUTH
                             ) {
                                 composable(AuthRoute.SignIn1) { Sign_in1Screen(navController) }

@@ -1,6 +1,7 @@
 package com.example.spotixe.Pages.Pages.SignUpPages
 
 import Components.Buttons.BackButton
+import Components.Buttons.GoogleSignInButtonFirebase
 import Components.Layout.OtpInputField
 import android.app.Activity
 import android.widget.Toast
@@ -17,16 +18,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,7 +30,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -49,16 +43,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.spotixe.AuthRoute
+import com.example.spotixe.Graph.AUTH
+import com.example.spotixe.MainRoute
 import com.example.spotixe.R
 import com.example.spotixe.services.verifyOtpCode
 
 @Composable
 fun Sign_UpPhone2Screen(navController: NavController){
-    var green = Color(0xFF58BA47)
+    val green = Color(0xFF58BA47)
     var otpValue = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val activity = context as Activity
     var isLoading by rememberSaveable { mutableStateOf(false) }
+    var isResending by rememberSaveable { mutableStateOf(false) }
+    var resendCountdown by rememberSaveable { mutableStateOf(0) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -117,19 +115,22 @@ fun Sign_UpPhone2Screen(navController: NavController){
                 count = 6,
                 mask = true,
                 onFilled = { code ->
-                    isLoading = true
-                    verifyOtpCode(
-                        activity = activity,
-                        code = code,
-                        onSuccess = {
-                            isLoading = false
-                            navController.navigate(AuthRoute.SignUpPhone3)
-                        },
-                        onError = { msg ->
-                            isLoading = false
-                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                        }
-                    )
+                    if (code.length == 6) {
+                        isLoading = true
+                        verifyOtpCode(
+                            activity = activity,
+                            code = code,
+                            onSuccess = {
+                                isLoading = false
+                                Toast.makeText(context, "OTP verified successfully!", Toast.LENGTH_SHORT).show()
+                                navController.navigate(AuthRoute.SignUpPhone3)
+                            },
+                            onError = { msg ->
+                                isLoading = false
+                                Toast.makeText(context, "Verification failed: $msg", Toast.LENGTH_LONG).show()
+                            }
+                        )
+                    }
                 }
             )
 
@@ -138,17 +139,26 @@ fun Sign_UpPhone2Screen(navController: NavController){
 
             Button(
                 onClick = {
+                    if (otpValue.value.isEmpty()) {
+                        Toast.makeText(context, "Please enter OTP code", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (otpValue.value.length != 6) {
+                        Toast.makeText(context, "OTP code must be 6 digits", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
                     isLoading = true
                     verifyOtpCode(
                         activity = activity,
                         code = otpValue.value,
                         onSuccess = {
                             isLoading = false
+                            Toast.makeText(context, "OTP verified successfully!", Toast.LENGTH_SHORT).show()
                             navController.navigate(AuthRoute.SignUpPhone3)
                         },
                         onError = { msg ->
                             isLoading = false
-                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Verification failed: $msg", Toast.LENGTH_LONG).show()
                         }
                     )
                 },
@@ -162,11 +172,70 @@ fun Sign_UpPhone2Screen(navController: NavController){
                 )
             ) {
                 Text(
-                    text = if (isLoading) "Verifying..." else "Continue",
+                    text = if (isLoading) "Verifying..." else "Verify",
                     fontSize = 18.sp
                 )
             }
 
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Resend and Change Phone buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Resend OTP Button
+                Button(
+                    onClick = {
+                        if (isResending || resendCountdown > 0) {
+                            Toast.makeText(context, "Please wait before resending", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        isResending = true
+                        // TODO: Call resend OTP API here
+                        Toast.makeText(context, "OTP code resent successfully", Toast.LENGTH_SHORT).show()
+                        isResending = false
+                        resendCountdown = 60
+                    },
+                    enabled = !isResending && resendCountdown == 0,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(45.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF444444),
+                        contentColor = green
+                    )
+                ) {
+                    Text(
+                        text = if (resendCountdown > 0) "Resend (${resendCountdown}s)" else "Resend OTP",
+                        fontSize = 14.sp
+                    )
+                }
+
+                // Change Phone Number Button
+                Button(
+                    onClick = {
+                        navController.popBackStack()
+                        Toast.makeText(context, "Please enter your phone number again", Toast.LENGTH_SHORT).show()
+                    },
+                    enabled = !isLoading,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(45.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF444444),
+                        contentColor = green
+                    )
+                ) {
+                    Text(
+                        text = "Change Number",
+                        fontSize = 14.sp
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -183,20 +252,23 @@ fun Sign_UpPhone2Screen(navController: NavController){
 
             Spacer(modifier = Modifier.height(15.dp))
 
-            Box(
-                modifier = Modifier
-                    .size(width = 100.dp, height = 50.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFEDEDED))
-                    .clickable { println("Sign in with Google clicked") },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.google_logo),
-                    contentDescription = "Google Logo",
-                    modifier = Modifier.size(30.dp)
-                )
-            }
+            GoogleSignInButtonFirebase(
+                onSuccess = { loginResponse ->
+                    // Successfully logged in with JWT saved - navigate directly to Home
+                    navController.navigate(MainRoute.Home) {
+                        popUpTo(AUTH) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                onError = { error ->
+                    // Show error message when Google Sign In fails
+                    Toast.makeText(
+                        context,
+                        "Sign in failed: ${error.message ?: "Unknown error occurred"}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
 
             Spacer(modifier = Modifier.height(25.dp))
 
@@ -208,7 +280,7 @@ fun Sign_UpPhone2Screen(navController: NavController){
                 },
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.clickable { println("Navigate to Sign Up") }
+                modifier = Modifier.clickable { navController.navigate(AuthRoute.SignIn1) }
             )
 
 
