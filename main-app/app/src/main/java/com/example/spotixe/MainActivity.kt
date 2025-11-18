@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
                         // ----- NAV HOST -----
                         NavHost(
                             navController = navController,
-                            startDestination = Graph.AUTH,
+                            startDestination = Graph.MAIN,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(inner)
@@ -95,7 +95,7 @@ class MainActivity : ComponentActivity() {
                             // START GRAPH
                             navigation(
                                 startDestination = StartRoute.Start1,
-                                route = Graph.START
+                                route = Graph.MAIN
                             ) {
                                 composable(StartRoute.Start1) { StartScreen(navController) }
                                 composable(StartRoute.Start2) { Start2Screen(navController) }

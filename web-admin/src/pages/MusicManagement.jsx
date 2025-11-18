@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Filter, MoreVertical, Edit, Trash2, Plus, Upload } from 'lucide-react'
@@ -10,6 +10,8 @@ import { TableSkeleton } from '@components/common/LoadingScreen'
 import { Select } from '@components/common/Input'
 import { formatDuration } from '@utils/helpers'
 import { getAllSongs, deleteSong } from '@services/api/songService'
+import { getAllArtists } from '@services/api/artistService'
+import { getAllAlbums } from '@services/api/albumService'
 import { formatDate, getStatusColor } from '../lib/formatters'
 import toast from 'react-hot-toast'
 
@@ -37,21 +39,65 @@ export default function MusicManagement() {
   const [openDropdown, setOpenDropdown] = useState(null)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 })
   // Fetch songs from API
-  const { data: songsData, isLoading } = useQuery({
+  const { data: songsData, isLoading: isLoadingSongs } = useQuery({
     queryKey: ['songs'],
     queryFn: getAllSongs,
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 10 * 60 * 1000, // 10 minutes
   })
 
+  // Fetch artists from API
+  const { data: artistsData, isLoading: isLoadingArtists } = useQuery({
+    queryKey: ['artists'],
+    queryFn: getAllArtists,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+  })
+
+  // Fetch albums from API
+  const { data: albumsData, isLoading: isLoadingAlbums } = useQuery({
+    queryKey: ['albums'],
+    queryFn: getAllAlbums,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
+  })
+
+  const isLoading = isLoadingSongs || isLoadingArtists || isLoadingAlbums
+
+  // Create maps for quick lookup
+  const artistMap = useMemo(() => {
+    const map = new Map()
+    artistsData?.forEach((artist) => {
+      map.set(artist.artistId, artist.name)
+    })
+    return map
+  }, [artistsData])
+
+  const albumMap = useMemo(() => {
+    const map = new Map()
+    albumsData?.forEach((album) => {
+      map.set(album.albumId, album.title)
+    })
+    return map
+  }, [albumsData])
+
+  // Enrich songs with artist and album names
+  const enrichedSongs = useMemo(() => {
+    return songsData?.map((song) => ({
+      ...song,
+      artistName: artistMap.get(song.artistId) || 'Không rõ',
+      albumTitle: song.albumId ? albumMap.get(song.albumId) || 'Unknown' : null,
+    })) || []
+  }, [songsData, artistMap, albumMap])
+
   // Transform API data to match existing structure
-  const totalSongs = songsData?.length || 0
+  const totalSongs = enrichedSongs?.length || 0
   const totalPages = Math.ceil(totalSongs / itemsPerPage)
   
   // Paginate data
   const startIndex = (page - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const paginatedSongs = songsData?.slice(startIndex, endIndex) || []
+  const paginatedSongs = enrichedSongs?.slice(startIndex, endIndex) || []
   
   const data = {
     data: paginatedSongs,
