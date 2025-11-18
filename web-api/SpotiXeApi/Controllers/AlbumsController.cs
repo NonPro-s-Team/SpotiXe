@@ -22,7 +22,9 @@ public class AlbumsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAlbums([FromQuery] bool includeDeleted = false, [FromQuery] string? q = null, CancellationToken cancellationToken = default)
     {
-        IQueryable<Album> query = _context.Albums.AsNoTracking();
+        IQueryable<Album> query = _context.Albums
+            .Include(a => a.Artist)
+            .AsNoTracking();
 
         if (!includeDeleted)
         {
@@ -41,6 +43,7 @@ public class AlbumsController : ControllerBase
                 a.AlbumId,
                 a.Title,
                 a.ArtistId,
+                ArtistName = a.Artist.Name,
                 a.CoverImageUrl,
                 a.ReleaseDate,
                 a.IsActive,
@@ -57,13 +60,16 @@ public class AlbumsController : ControllerBase
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetAlbumById([FromRoute] long id, CancellationToken cancellationToken = default)
     {
-        var album = await _context.Albums.AsNoTracking()
+        var album = await _context.Albums
+            .Include(a => a.Artist)
+            .AsNoTracking()
             .Where(a => a.AlbumId == id)
             .Select(a => new
             {
                 a.AlbumId,
                 a.Title,
                 a.ArtistId,
+                ArtistName = a.Artist.Name,
                 a.CoverImageUrl,
                 a.ReleaseDate,
                 a.IsActive,

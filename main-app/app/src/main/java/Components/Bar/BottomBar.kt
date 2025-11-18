@@ -1,6 +1,8 @@
 package Components.Bar
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -26,41 +28,47 @@ fun BottomBar(
     val items = BottomBarNavData.bottomBarItemList
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
-    Surface(
+
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 12.dp),
-        shape = RoundedCornerShape(18.dp),
-        color = Color(0xCC242424),
-        border = BorderStroke(1.dp, Color(0x332E2E2E)),
-        shadowElevation = 10.dp
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        NavigationBar(
-            containerColor = Color.Transparent,
-            tonalElevation = 0.dp
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            color = Color(0xCC242424),
+            border = BorderStroke(1.dp, Color(0x332E2E2E)),
+            shadowElevation = 10.dp
         ) {
-            items.forEach { item ->
-                val selected = currentDestination.isOnDestination(item.routes)
-                NavigationBarItem(
-                    selected = selected,
-                    onClick = {
-                        navController.navigate(item.routes) {
-                            launchSingleTop = true
-                            restoreState = true
-                            popUpTo(Graph.MAIN) { saveState = true }
-                        }
-                    },
-                    icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
-                    label = { Text(item.label) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.White,
-                        selectedTextColor = Color.White,
-                        indicatorColor = Color(0xFF1DB954),
-                        unselectedIconColor = Color(0xFF9AA0A6),
-                        unselectedTextColor = Color(0xFF9AA0A6)
+            NavigationBar(
+                containerColor = Color.Transparent,
+                tonalElevation = 0.dp
+            ) {
+                items.forEach { item ->
+                    val selected = currentDestination.isOnDestination(item.routes)
+                    NavigationBarItem(
+                        selected = selected,
+                        onClick = {
+                            navController.navigate(item.routes) {
+                                launchSingleTop = true
+                                restoreState = true
+                                popUpTo(Graph.MAIN) { saveState = true }
+                            }
+                        },
+                        icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
+                        label = { Text(item.label) },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color.White,
+                            selectedTextColor = Color.White,
+                            indicatorColor = Color(0xFF1DB954),
+                            unselectedIconColor = Color(0xFF9AA0A6),
+                            unselectedTextColor = Color(0xFF9AA0A6)
+                        )
                     )
-                )
+                }
             }
         }
     }

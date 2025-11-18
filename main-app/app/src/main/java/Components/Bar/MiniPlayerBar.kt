@@ -1,6 +1,5 @@
 package Components.Bar
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,36 +11,43 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.zIndex
-import com.example.spotixe.player.PlayerUiState
-import kotlinx.coroutines.flow.StateFlow
-import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
+import com.example.spotixe.player.PlayerViewModel
+import com.example.spotixe.Data.model.Song
 
 @Composable
 fun MiniPlayerBar(
-    state: StateFlow<PlayerUiState>,
-    onToggle: () -> Unit,
+    playerViewModel: PlayerViewModel,
+    onOpenSongView: () -> Unit,
     onSeek: (Float) -> Unit,
     onSeekStart: () -> Unit,
     onSeekEnd: () -> Unit,
-    onOpenSongView: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val ui by state.collectAsState()
-    val song = ui.current ?: return
+    // Collect state from the ViewModel using delegated properties with explicit initial values
+    val currentSong by playerViewModel.currentSong.collectAsState(initial = null as Song?)
+    val isPlaying by playerViewModel.isPlaying.collectAsState(initial = false)
+    val progress by playerViewModel.progress.collectAsState(initial = 0f)
+
+    // Only show if there's a song playing
+    val song = currentSong ?: return
 
     Column(
-        modifier.fillMaxWidth()
-            .background(Color(0xFF222222), shape = RoundedCornerShape(12.dp))
+        modifier
+            .fillMaxWidth()
+            .background(Color(0xFF1E1E1E), shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
     ) {
         Row(
             modifier = Modifier
@@ -51,34 +57,54 @@ fun MiniPlayerBar(
                 .clickable { onOpenSongView() },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(song.coverRes),
-                contentDescription = null,
+            // Cover image from API
+            AsyncImage(
+                model = song.coverImageUrl,
+                contentDescription = song.title,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(6.dp)),
+                contentScale = ContentScale.Crop
             )
+            
             Spacer(Modifier.width(10.dp))
+
+            // Song info
             Column(Modifier.weight(1f)) {
-                Text(song.title, color = Color.Black, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, maxLines = 1)
-                Text(song.artist, color = Color.Black.copy(0.8f), fontSize = 12.sp, maxLines = 1, fontWeight = FontWeight.SemiBold)
+                Text(
+                    text = song.title,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = song.genre ?: "Artist",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
-            IconButton(onClick = onToggle) {
+            
+            // Play/Pause button
+            IconButton(onClick = { playerViewModel.togglePlayPause() }) {
                 Icon(
-                    imageVector = if (ui.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = null,
-                    tint = Color.Black
+                    imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    tint = Color.White
                 )
             }
         }
 
         ScrubbableProgressBar(
-            progress    = ui.progress,
-            onSeek      = onSeek,
+            progress = progress,
+            onSeek = onSeek,
             onSeekStart = onSeekStart,
-            onSeekEnd   = onSeekEnd,
-            height      = 8.dp,
-            modifier    = Modifier
+            onSeekEnd = onSeekEnd,
+            height = 8.dp,
+            modifier = Modifier
                 .fillMaxWidth()
                 .zIndex(1f)
         )

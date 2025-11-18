@@ -21,7 +21,10 @@ public class SongsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetSongs([FromQuery] bool includeDeleted = false, [FromQuery] string? q = null, CancellationToken cancellationToken = default)
     {
-        IQueryable<Song> query = _context.Songs.AsNoTracking();
+        IQueryable<Song> query = _context.Songs
+            .Include(s => s.Artist)
+            .Include(s => s.Album)
+            .AsNoTracking();
         if (!includeDeleted)
         {
             query = query.Where(x => x.IsActive == 1UL);
@@ -43,7 +46,9 @@ public class SongsController : ControllerBase
                 s.CoverImageUrl,
                 s.Genre,
                 s.ArtistId,
+                ArtistName = s.Artist.Name,
                 s.AlbumId,
+                AlbumTitle = s.Album != null ? s.Album.Title : null,
                 s.IsActive,
                 s.CreatedAt,
                 s.UpdatedAt,
@@ -56,25 +61,31 @@ public class SongsController : ControllerBase
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetSongById([FromRoute] long id, CancellationToken cancellationToken = default)
     {
-        var song = await _context.Songs.AsNoTracking()
-            .Where(x => x.SongId == id)
-            .Select(s => new
-            {
-                s.SongId,
-                s.Title,
-                s.Duration,
-                s.ReleaseDate,
-                s.AudioFileUrl,
-                s.CoverImageUrl,
-                s.Genre,
-                s.ArtistId,
-                s.AlbumId,
-                s.IsActive,
-                s.CreatedAt,
-                s.UpdatedAt,
-                s.DeletedAt
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+        var song = await _context.Songs
+        .Include(s => s.Artist)
+        .Include(s => s.Album)
+        .AsNoTracking()
+        .Where(x => x.SongId == id)
+        .Select(s => new
+        {
+            s.SongId,
+            s.Title,
+            s.Duration,
+            s.ReleaseDate,
+            s.AudioFileUrl,
+            s.CoverImageUrl,
+            s.Genre,
+            s.ArtistId,
+            ArtistName = s.Artist.Name,
+            s.AlbumId,
+            AlbumTitle = s.Album != null ? s.Album.Title : null,
+            s.IsActive,
+            s.CreatedAt,
+            s.UpdatedAt,
+            s.DeletedAt
+        })
+        .FirstOrDefaultAsync(cancellationToken);
+
         if (song == null) return NotFound();
         return Ok(song);
     }
