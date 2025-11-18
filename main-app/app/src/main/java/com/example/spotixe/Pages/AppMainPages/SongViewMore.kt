@@ -65,6 +65,14 @@ fun SongMoreScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 BackButton(navController)
+                Text(
+                    text = "More Options",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .padding(start = 16.dp)
+                )
             }
 
             // Cover

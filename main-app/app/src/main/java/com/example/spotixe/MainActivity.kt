@@ -109,7 +109,7 @@ class MainActivity : ComponentActivity() {
                         // Determine start destination based on login status
                         val isLoggedIn by authVM.isLoggedIn.collectAsState()
 //                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
-                        val startDest = Graph.AUTH
+                        val startDest = Graph.MAIN
 
                         NavHost(
                             navController = navController,
@@ -298,7 +298,11 @@ class MainActivity : ComponentActivity() {
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .padding(start = 16.dp, end = 16.dp, bottom = inner.calculateBottomPadding() + 8.dp)
+                                    .padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = inner.calculateBottomPadding() + 8.dp
+                                    )
                             )
                         }
 

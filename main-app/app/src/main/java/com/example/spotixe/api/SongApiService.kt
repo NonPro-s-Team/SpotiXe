@@ -15,6 +15,9 @@ interface SongApiService {
 
     @GET("api/artists/{id}")
     suspend fun getArtistById(@Path("id") artistId: Long): Response<ArtistResponse>
+
+//    @GET("api/albums/{id}")
+//    suspend fun getAlbumById(@Path("id") albumId: Long): Response
 }
 
 // Data class for Artist API response

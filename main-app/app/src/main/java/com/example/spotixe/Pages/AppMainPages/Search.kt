@@ -90,7 +90,7 @@ fun SearchScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    BackButton(navController)
+//                    BackButton(navController)
 
                     Text(
                         text = "Tìm kiếm",

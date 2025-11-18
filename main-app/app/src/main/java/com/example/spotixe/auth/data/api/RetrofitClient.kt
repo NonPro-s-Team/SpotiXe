@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
     
     private const val BASE_URL = "https://api.spotixe.io.vn/"
-    
+
     // Gson instance with custom configuration
     private val gson: Gson = GsonBuilder()
         .setLenient()
