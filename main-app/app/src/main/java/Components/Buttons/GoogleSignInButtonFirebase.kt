@@ -195,7 +195,16 @@ fun GoogleSignInButtonFirebase(
             .clip(RoundedCornerShape(cornerRadius.dp))
             .clickable(enabled = !loading) {
                 loading = true
-                launcher.launch(googleClient.signInIntent)
+                // Sign out from Google to force account picker
+                scope.launch {
+                    try {
+                        googleClient.signOut().await()
+                        Log.d("GoogleSignIn", "Google client signed out, launching account picker")
+                    } catch (e: Exception) {
+                        Log.w("GoogleSignIn", "Error signing out: ${e.message}")
+                    }
+                    launcher.launch(googleClient.signInIntent)
+                }
             },
         color = containerColor,
         shadowElevation = 0.dp

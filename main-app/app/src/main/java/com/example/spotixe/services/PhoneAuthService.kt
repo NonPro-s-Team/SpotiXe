@@ -79,7 +79,6 @@ fun verifyOtpCode(
     auth.signInWithCredential(credential)
         .addOnCompleteListener(activity) { task ->
             if (task.isSuccessful) {
-
                 onSuccess()
             } else {
                 onError(task.exception?.localizedMessage ?: "Xác thực thất bại")
