@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -27,6 +26,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.example.spotixe.Data.AlbumRepository
 import com.example.spotixe.Data.ArtistRepository
 import com.example.spotixe.Data.PlaylistRepository
@@ -39,13 +40,19 @@ import com.example.spotixe.Pages.Pages.SignUpPages.Sign_UpPhone1Screen
 import com.example.spotixe.Pages.Pages.SignUpPages.Sign_UpPhone2Screen
 import com.example.spotixe.Pages.Pages.SignUpPages.Sign_UpPhone3Screen
 import com.example.spotixe.Pages.Pages.StartPages.Start2Screen
-import com.example.spotixe.Pages.Pages.StartPages.Start3Screen
 import com.example.spotixe.Pages.Pages.StartPages.StartScreen
 import com.example.spotixe.player.PlayerViewModel
+import com.example.spotixe.player.MusicPlayerService
 import com.example.spotixe.ui.theme.SpotiXeTheme
 import androidx.lifecycle.ViewModelProvider
+import com.example.spotixe.auth.viewmodel.AuthViewModel
+import kotlinx.coroutines.flow.firstOrNull
 
 class MainActivity : ComponentActivity() {
+
+    private var navController: NavHostController? = null
+    private var playerVM: PlayerViewModel? = null
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,23 +60,31 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
-            val navController: NavHostController = rememberNavController()
-            val context = LocalContext.current
+            navController = rememberNavController()
             // VM phát nhạc dùng chung toàn app (scope Activity) - NEW ExoPlayer-based
-            val playerVM: PlayerViewModel = remember {
+            playerVM = remember {
                 ViewModelProvider(
                     this,
                     ViewModelProvider.AndroidViewModelFactory.getInstance(application)
                 )[PlayerViewModel::class.java]
             }
             // Authentication ViewModel
-            val authVM: com.example.spotixe.auth.viewmodel.AuthViewModel = viewModel()
+            val authVM: AuthViewModel = viewModel()
+
+            // Handle intent to navigate to player screen when notification is clicked
+            LaunchedEffect(intent) {
+                playerVM?.let { vm ->
+                    navController?.let { nav ->
+                        handleIntentNavigation(intent, nav, vm)
+                    }
+                }
+            }
 
             SpotiXeTheme {
                 SetSystemBars()
 
                 // Theo dõi route hiện tại để quyết định show/hide các thanh
-                val backStack by navController.currentBackStackEntryAsState()
+                val backStack by navController!!.currentBackStackEntryAsState()
                 val dest = backStack?.destination
 
                 // Những route FULL-SCREEN muốn ẩn BottomBar
@@ -102,17 +117,17 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     containerColor = Color(0xFF121212),
-                    bottomBar = { if (showBottomBar) BottomBar(navController) }
+                    bottomBar = { if (showBottomBar) BottomBar(navController!!) }
                 ) { inner ->
                     Box(Modifier.fillMaxSize()) {
                         // ----- NAV HOST -----
                         // Determine start destination based on login status
                         val isLoggedIn by authVM.isLoggedIn.collectAsState()
-//                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
-                        val startDest = Graph.AUTH
+                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
+//                        val startDest = Graph.AUTH
 
                         NavHost(
-                            navController = navController,
+                            navController = navController!!,
                             startDestination = startDest,
                             modifier = Modifier
                                 .fillMaxSize()
@@ -120,12 +135,12 @@ class MainActivity : ComponentActivity() {
                         ) {
                             // START GRAPH
                             navigation(
-                                startDestination = StartRoute.Start3,
+                                startDestination = StartRoute.Start1,
                                 route = Graph.START
                             ) {
-                                composable(StartRoute.Start1) { StartScreen(navController) }
-                                composable(StartRoute.Start2) { Start2Screen(navController) }
-                                composable(StartRoute.Start3) { Start3Screen(navController) }
+                                composable(StartRoute.Start1) { StartScreen(navController!!) }
+                                composable(StartRoute.Start2) { Start2Screen(navController!!) }
+//                                composable(StartRoute.Start3) { Start3Screen(navController!!) }
                             }
 
                             // AUTH GRAPH
@@ -133,12 +148,12 @@ class MainActivity : ComponentActivity() {
                                 startDestination = AuthRoute.SignUpPhone1,
                                 route = Graph.AUTH
                             ) {
-                                composable(AuthRoute.SignIn1) { Sign_in1Screen(navController) }
-                                composable(AuthRoute.SignUpEmail1) { Sign_UpEmail1Screen(navController) }
-                                composable(AuthRoute.SignUpEmail2) { Sign_UpEmail2Screen(navController) }
-                                composable(AuthRoute.SignUpPhone1) { Sign_UpPhone1Screen(navController) }
-                                composable(AuthRoute.SignUpPhone2) { Sign_UpPhone2Screen(navController) }
-                                composable(AuthRoute.SignUpPhone3) { Sign_UpPhone3Screen(navController) }
+                                composable(AuthRoute.SignIn1) { Sign_in1Screen(navController!!) }
+                                composable(AuthRoute.SignUpEmail1) { Sign_UpEmail1Screen(navController!!) }
+                                composable(AuthRoute.SignUpEmail2) { Sign_UpEmail2Screen(navController!!) }
+                                composable(AuthRoute.SignUpPhone1) { Sign_UpPhone1Screen(navController!!) }
+                                composable(AuthRoute.SignUpPhone2) { Sign_UpPhone2Screen(navController!!) }
+                                composable(AuthRoute.SignUpPhone3) { Sign_UpPhone3Screen(navController!!) }
                             }
 
                             // MAIN GRAPH
@@ -146,11 +161,11 @@ class MainActivity : ComponentActivity() {
                                 startDestination = MainRoute.Home,
                                 route = Graph.MAIN
                             ) {
-                                composable(MainRoute.Home) { HomeScreen(navController) }
-                                composable(MainRoute.Explore) { ExploreScreen(navController) }
-                                composable(MainRoute.Search) { SearchScreen(navController) }
-                                composable(MainRoute.User) { UserScreen(navController) }
-                                composable(MainRoute.UserDetail) { UserDetailScreen(navController) }
+                                composable(MainRoute.Home) { HomeScreen(navController!!) }
+                                composable(MainRoute.Explore) { ExploreScreen(navController!!) }
+                                composable(MainRoute.Search) { SearchScreen(navController!!) }
+                                composable(MainRoute.User) { UserScreen(navController!!) }
+                                composable(MainRoute.UserDetail) { UserDetailScreen(navController!!) }
                                 composable(MainRoute.ErrorScreen) {
                                     ErrorScreen(
                                         message = "An unexpected error occurred.",
@@ -161,12 +176,12 @@ class MainActivity : ComponentActivity() {
                                 // SongView (old - local data)
                                 composable(
                                     route = MainRoute.SongView,
-                                    arguments = listOf(navArgument("songId") { type = NavType.StringType })
+                                    arguments = listOf(navArgument("songId")  { type = NavType.StringType })
                                 ) { be ->
                                     val songId = be.arguments?.getString("songId") ?: return@composable
                                     val song = remember(songId) { SongRepository.get(songId) }
                                     if (song != null) {
-                                        SongViewScreen(navController, song)
+                                        SongViewScreen(navController!!, song)
                                     } else {
                                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                             Text("Song not found", color = Color.White)
@@ -181,9 +196,9 @@ class MainActivity : ComponentActivity() {
                                 ) { backStackEntry ->
                                     val songId = backStackEntry.arguments?.getLong("songId") ?: return@composable
                                     ApiSongViewScreen(
-                                        navController = navController,
+                                        navController = navController!!,
                                         songId = songId,
-                                        playerViewModel = playerVM
+                                        playerViewModel = playerVM!!
                                     )
                                 }
 
@@ -195,7 +210,7 @@ class MainActivity : ComponentActivity() {
                                     val songId = be.arguments?.getString("songId") ?: return@composable
                                     val song = SongRepository.get(songId)
                                     if (song != null) {
-                                        SongMoreScreen(navController, song)
+                                        SongMoreScreen(navController!!, song)
                                     }
                                 }
 
@@ -209,13 +224,13 @@ class MainActivity : ComponentActivity() {
                                     val nextList = remember(songId) { SongRepository.all.filter { it.id != songId } }
                                     if (current != null) {
                                         QueueScreen(
-                                            navController = navController,
+                                            navController = navController!!,
                                             current = current,
                                             playingNext = nextList
                                         )
                                     } else {
                                         QueueScreen(
-                                            navController = navController,
+                                            navController = navController!!,
                                             current = SongRepository.all.first(),
                                             playingNext = SongRepository.all.drop(1)
                                         )
@@ -231,7 +246,7 @@ class MainActivity : ComponentActivity() {
                                     val pl = remember(pid) { PlaylistRepository.get(pid) }
                                     val songs = remember(pl) { pl?.let { PlaylistRepository.songsOf(it) } ?: emptyList() }
                                     if (pl != null) {
-                                        PlaylistDetailScreen(navController, pl, songs)
+                                        PlaylistDetailScreen(navController!!, pl, songs)
                                     } else {
                                         Text("Playlist not found", color = Color.White)
                                     }
@@ -246,7 +261,7 @@ class MainActivity : ComponentActivity() {
                                     val album = AlbumRepository.get(albumId)
                                     val songs = album?.let { AlbumRepository.songsOf(it) } ?: emptyList()
                                     if (album != null) {
-                                        AlbumDetailScreen(navController, album, songs)
+                                        AlbumDetailScreen(navController!!, album, songs)
                                     } else {
                                         Text("Album not found", color = Color.White)
                                     }
@@ -263,7 +278,7 @@ class MainActivity : ComponentActivity() {
                                         val album = artist.albumId?.let { AlbumRepository.get(it) }
                                         val topSongs = artist.topSongIds.mapNotNull { SongRepository.get(it) }
                                         ArtistDetailScreen(
-                                            navController = navController,
+                                            navController = navController!!,
                                             artistName = artist.name,
                                             coverRes = artist.coverRes,
                                             album = album,
@@ -281,20 +296,20 @@ class MainActivity : ComponentActivity() {
                         // MiniPlayerBar overlay (ngoài NavHost, nằm trên BottomBar)
                         if (showMini) {
                             MiniPlayerBar(
-                                playerViewModel = playerVM,
+                                playerViewModel = playerVM!!,
                                 onOpenSongView = {
-                                    playerVM.currentSong.value?.songId?.let { songId ->
-                                        navController.navigate("api_song_view/$songId")
+                                    playerVM!!.currentSong.value?.songId?.let { songId ->
+                                        navController!!.navigate("api_song_view/$songId")
                                     }
                                 },
                                 onSeek = { newProgress ->
-                                    playerVM.seekTo(newProgress)
+                                    playerVM!!.seekTo(newProgress)
                                 },
                                 onSeekStart = {
-                                    playerVM.pauseForSeeking()
+                                    playerVM!!.pauseForSeeking()
                                 },
                                 onSeekEnd = {
-                                    playerVM.resumeAfterSeeking()
+                                    playerVM!!.resumeAfterSeeking()
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
@@ -307,8 +322,35 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        // Handle notification click when app is already running
+        if (intent.action == MusicPlayerService.ACTION_OPEN_PLAYER) {
+            playerVM?.currentSong?.value?.let { song ->
+                navController?.navigate("api_song_view/${song.songId}") {
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
 }
 
 // Helper: kiểm tra destination có thuộc 1 graph không
 private fun NavDestination?.isInGraph(route: String): Boolean =
     this?.hierarchy?.any { it.route == route } == true
+
+private suspend fun handleIntentNavigation(
+    intent: android.content.Intent,
+    navController: NavHostController,
+    playerVM: PlayerViewModel
+) {
+    if (intent.action == MusicPlayerService.ACTION_OPEN_PLAYER) {
+        // Get current song without blocking indefinitely
+        playerVM.currentSong.firstOrNull { it != null }?.let { song ->
+            navController.navigate("api_song_view/${song.songId}") {
+                launchSingleTop = true
+            }
+        }
+    }
+}

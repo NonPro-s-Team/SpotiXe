@@ -1,11 +1,9 @@
 package com.example.spotixe.Pages.Pages.AppMainPages
 
-import Components.Buttons.BackButton
-import Components.Card.ApiRecentlyPlayedItem
+import Components.Layout.ApiExploreSectionPager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
@@ -61,8 +59,6 @@ fun ExploreScreen(navController: NavHostController) {
                             .padding(top = 12.dp, start = 8.dp, end = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-//                        BackButton(navController)
-
                         Text(
                             text = "Khám phá",
                             fontSize = 28.sp,
@@ -75,17 +71,7 @@ fun ExploreScreen(navController: NavHostController) {
                     HorizontalDivider(color = Color.White.copy(alpha = 0.2f))
                 }
 
-                // ---------- SECTION 1: HIT MỚI HÔM NAY ----------
-                item {
-                    Text(
-                        text = "Hit mới hôm nay",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                    )
-                }
-
+                // ---------- LOADING STATE ----------
                 if (isLoading && songs.isEmpty()) {
                     item {
                         Box(
@@ -98,81 +84,24 @@ fun ExploreScreen(navController: NavHostController) {
                         }
                     }
                 } else {
-                    // Grid layout for first 10 songs using chunked items
-                    val hitSongs = songs.take(10)
-                    val chunkedHitSongs = hitSongs.chunked(3)
-
-                    items(chunkedHitSongs) { rowSongs ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            rowSongs.forEach { song ->
-                                Box(
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    ApiRecentlyPlayedItem(
-                                        song = song,
-                                        onClickItem = {
-                                            playerVM.playSong(song)
-                                            navController.navigate("api_song_view/${song.songId}")
-                                        }
-                                    )
-                                }
-                            }
-                            // Fill empty spaces in incomplete rows
-                            repeat(3 - rowSongs.size) {
-                                Spacer(modifier = Modifier.weight(1f))
-                            }
-                        }
+                    // ---------- SECTION 1: HIT MỚI HÔM NAY ----------
+                    item {
+                        ApiExploreSectionPager(
+                            title = "Hit mới hôm nay",
+                            songs = songs.take(20),
+                            navController = navController,
+                            playerVM = playerVM
+                        )
                     }
-                }
 
-                item {
-                    Spacer(Modifier.height(20.dp))
-                }
-
-                // ---------- SECTION 2: MỚI PHÁT HÀNH ----------
-                item {
-                    Text(
-                        text = "Mới phát hành",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                    )
-                }
-
-                // Grid layout for next 10 songs using chunked items
-                val newReleaseSongs = songs.drop(10).take(10)
-                val chunkedNewSongs = newReleaseSongs.chunked(3)
-
-                items(chunkedNewSongs) { rowSongs ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        rowSongs.forEach { song ->
-                            Box(
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                ApiRecentlyPlayedItem(
-                                    song = song,
-                                    onClickItem = {
-                                        playerVM.playSong(song)
-                                        navController.navigate("api_song_view/${song.songId}")
-                                    }
-                                )
-                            }
-                        }
-                        // Fill empty spaces in incomplete rows
-                        repeat(3 - rowSongs.size) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
+                    // ---------- SECTION 2: MỚI PHÁT HÀNH ----------
+                    item {
+                        ApiExploreSectionPager(
+                            title = "Mới phát hành",
+                            songs = songs.drop(20).take(20),
+                            navController = navController,
+                            playerVM = playerVM
+                        )
                     }
                 }
 

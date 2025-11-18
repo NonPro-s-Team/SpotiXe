@@ -208,7 +208,7 @@ fun GoogleSignInButtonFirebase(
             contentAlignment = Alignment.Center
         ) {
             Row(
-                modifier = Modifier.width(75.dp),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -218,22 +218,27 @@ fun GoogleSignInButtonFirebase(
                         strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.primary
                     )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = "Signing in...",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
                 } else {
                     Image(
                         painter = painterResource(id = R.drawable.google_logo),
                         contentDescription = "Google Logo",
-                        modifier = Modifier
-                            .size(45.dp)
-                            .padding(start = 6.dp)
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = "Continue with Google",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
                     )
                 }
-                Spacer(Modifier.width(6.dp))
-                Text(
-                    text = if (loading) "Signing in..." else "",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF202124)
-                )
             }
         }
     }

@@ -67,7 +67,9 @@ dependencies {
     implementation("androidx.media3:media3-session:1.4.1")
     implementation("androidx.media3:media3-common:1.4.1")
     
-    implementation ("com.google.dagger:hilt-android:2.57.1") // Use the latest version
+    implementation ("com.google.dagger:hilt-android:2.57.1")
+    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.compose.ui.text) // Use the latest version
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.38")
@@ -101,4 +103,6 @@ dependencies {
 
     // Coil for image loading
     implementation(libs.coil.compose)
+
+    implementation("com.google.accompanist:accompanist-navigation-animation:0.32.0")
 }

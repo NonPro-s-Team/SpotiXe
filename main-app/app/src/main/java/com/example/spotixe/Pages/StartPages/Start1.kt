@@ -26,13 +26,14 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.example.spotixe.AuthRoute
 import com.example.spotixe.R
 import com.example.spotixe.StartRoute
 
 @Composable
-fun StartScreen(navController: NavController){
-    var green = Color(0xFF58BA47)
-    Box(
+fun StartScreen(navController: NavController) {
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(
@@ -40,83 +41,86 @@ fun StartScreen(navController: NavController){
                     colors = listOf(
                         Color(0xFF000000),
                         Color(0xFF031508),
-                        green
+                        Color(0xFF58BA47)
                     ),
                     start = Offset(1000f, 0f),
                     end = Offset(0f, 1800f)
                 )
             )
-    )
-    {
-        Column (modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(),
+    ) {
+        val screenHeight = maxHeight
+        val screenWidth = maxWidth
+
+        // Responsive sizes
+        val logoHeight = screenHeight * 0.28f
+        val titleFontSize = screenWidth.value * 0.10f
+        val buttonHeight = screenHeight * 0.085f
+
+        val topSpacer = screenHeight * 0.08f
+        val smallSpacer = screenHeight * 0.03f
+        val bigSpacer = screenHeight * 0.15f
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
-            Spacer(Modifier.height(80.dp))
+        ) {
+
+            Spacer(modifier = Modifier.height(topSpacer))
 
             Image(
                 painter = painterResource(R.drawable.spotixe_logo),
                 contentDescription = null,
-                modifier = Modifier
-                    .height(250.dp)
-
+                modifier = Modifier.height(logoHeight)
             )
 
-            Spacer(Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(smallSpacer))
 
             Text(
-                "Melody comes\nwith you all along",
+                text = "Melody comes\nwith you all along",
                 color = Color.White,
-                fontSize = 40.sp,
+                fontSize = titleFontSize.sp,
                 fontWeight = FontWeight.Bold,
-
                 textAlign = TextAlign.Center,
-                lineHeight = 50.sp
+                lineHeight = (titleFontSize * 1.2f).sp
             )
 
-            Spacer(Modifier.height(140.dp))
+            Spacer(modifier = Modifier.height(bigSpacer))
 
+            // BUTTON 1
             Button(
-                onClick = {navController.navigate(StartRoute.Start3)},
+                onClick = { navController.navigate(AuthRoute.SignIn1) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(65.dp)
-                    .padding(bottom = 10.dp)
-                    .padding(start = 20.dp)
-                    .padding(end = 20.dp)
-                    .imePadding(),
+                    .height(buttonHeight),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDDDDDD))
             ) {
                 Text(
                     "I already have account",
                     color = Color.Black,
-                    fontSize = 20.sp,
+                    fontSize = (titleFontSize * 0.45f).sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
             }
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(smallSpacer))
 
+            // BUTTON 2
             Button(
-                onClick = {navController.navigate(StartRoute.Start3)},
+                onClick = { navController.navigate(StartRoute.Start2) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(65.dp)
-                    .padding(bottom = 10.dp)
-                    .padding(start = 20.dp)
-                    .padding(end = 20.dp)
-                    .imePadding(),
+                    .height(buttonHeight),
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDDDDDD))
             ) {
                 Text(
                     "Sign up free",
                     color = Color.Black,
-                    fontSize = 20.sp,
+                    fontSize = (titleFontSize * 0.45f).sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )

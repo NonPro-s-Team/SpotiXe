@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -53,71 +55,83 @@ import com.example.spotixe.R
 @Composable
 fun Sign_UpEmail1Screen(
     navController: NavController
-){
+) {
     val green = Color(0xFF58BA47)
     val context = LocalContext.current
+
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
-    Box(
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                color = Color(0xFF121212)
-            )
-    )
-    {
-        Row (
+            .background(Color(0xFF121212))
+    ) {
+        val screenHeight = maxHeight
+        val screenWidth = maxWidth
+
+        // Responsive Sizes
+        val logoHeight = screenHeight * 0.22f
+        val titleFontSize = screenWidth.value * 0.085f
+        val labelFontSize = screenWidth.value * 0.045f
+        val inputFontSize = screenWidth.value * 0.040f
+        val buttonWidth = screenWidth * 0.45f
+        val buttonHeight = screenHeight * 0.065f
+        val normalSpacer = screenHeight * 0.02f
+        val bigSpacer = screenHeight * 0.05f
+
+        // Back Button
+        Row(
             modifier = Modifier
                 .padding(start = 15.dp)
                 .statusBarsPadding(),
             horizontalArrangement = Arrangement.Start
-        ){
+        ) {
             BackButton(navController)
         }
 
         Column(
             modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth()
-                .padding(horizontal = 30.dp),
+                .fillMaxSize()
+                .padding(horizontal = 30.dp)
+                .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(normalSpacer * 2))
 
             Image(
                 painter = painterResource(R.drawable.spotixe_logo),
                 contentDescription = null,
-                modifier = Modifier.height(180.dp)
+                modifier = Modifier.height(logoHeight)
             )
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(normalSpacer))
 
             Text(
                 "Create your account",
-                fontSize = 35.sp,
+                fontSize = titleFontSize.sp,
                 fontWeight = FontWeight.Bold,
                 color = green,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(bigSpacer / 1.3f))
 
+            // NAME label
             Text(
                 text = "Name",
                 color = green,
-                fontSize = 18.sp,
+                fontSize = labelFontSize.sp,
                 modifier = Modifier.align(Alignment.Start)
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(normalSpacer / 1.2f))
 
-            // TextField cho Name
+            // NAME input
             TextField(
                 value = name,
-                onValueChange = {
-                    name = it
-                },
-                textStyle = TextStyle(color = green, fontSize = 16.sp),
+                onValueChange = { name = it },
+                textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF444444),
                     unfocusedContainerColor = Color(0xFF444444),
@@ -129,28 +143,26 @@ fun Sign_UpEmail1Screen(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(shape = RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
             )
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(normalSpacer))
 
-            // Email label
+            // EMAIL label
             Text(
                 text = "Email",
                 color = green,
-                fontSize = 18.sp,
+                fontSize = labelFontSize.sp,
                 modifier = Modifier.align(Alignment.Start)
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(normalSpacer / 1.2f))
 
-            // TextField cho Email
+            // EMAIL input
             TextField(
                 value = email,
-                onValueChange = {
-                    email = it
-                },
-                textStyle = TextStyle(color = green, fontSize = 16.sp),
+                onValueChange = { email = it },
+                textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF444444),
                     unfocusedContainerColor = Color(0xFF444444),
@@ -162,14 +174,14 @@ fun Sign_UpEmail1Screen(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(shape = RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
             )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(bigSpacer / 2f))
 
+            // SIGN UP BUTTON
             Button(
                 onClick = {
-                    // Validate and show appropriate Toast messages
                     when {
                         name.isEmpty() -> {
                             Toast.makeText(context, "Please enter your name", Toast.LENGTH_SHORT).show()
@@ -181,71 +193,69 @@ fun Sign_UpEmail1Screen(
                             Toast.makeText(context, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
                         }
                         else -> {
-                            navController.navigate(AuthRoute.SignUpEmail2)
+                            navController.navigate(AuthRoute.SignUpEmail2) { launchSingleTop = true }
                         }
                     }
                 },
                 modifier = Modifier
-                    .width(150.dp)
-                    .height(45.dp),
+                    .width(buttonWidth)
+                    .height(buttonHeight),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = green,
                     contentColor = Color.Black
                 )
-
             ) {
                 Text(
                     text = "Sign up",
-                    fontSize = 18.sp
+                    fontSize = (labelFontSize * 1.1f).sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(bigSpacer))
 
             Text(
                 text = buildAnnotatedString {
                     append("Or ")
-                    withStyle(style = SpanStyle(color = Color.White)) { append("Continue") }
+                    withStyle(SpanStyle(color = Color.White)) { append("Continue") }
                     append(" with")
                 },
                 color = green,
-                fontSize = 16.sp,
+                fontSize = inputFontSize.sp,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(normalSpacer))
 
             GoogleSignInButtonFirebase(
-                onSuccess = { loginResponse ->
-                    // Successfully logged in with JWT saved - navigate directly to Home
+                onSuccess = {
                     navController.navigate(MainRoute.Home) {
                         popUpTo(AUTH) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
                 onError = { error ->
-                    // Show error message when Google Sign In fails
                     Toast.makeText(
                         context,
-                        "Sign in failed: ${error.message ?: "Unknown error occurred"}",
+                        "Sign in failed: ${error.message ?: "Unknown error"}",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             )
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(normalSpacer * 2))
 
             Text(
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = green)) {append("Already have account ?\n")}
-                    withStyle(style = SpanStyle(color = green)) { append("Click here to ") }
-                    withStyle(style = SpanStyle(color = Color.White, fontStyle = FontStyle.Italic)) { append("sign in") }
+                    withStyle(SpanStyle(color = green)) { append("Already have account?\n") }
+                    withStyle(SpanStyle(color = green)) { append("Click here to ") }
+                    withStyle(SpanStyle(color = Color.White, fontStyle = FontStyle.Italic)) { append("sign in") }
                 },
-                fontSize = 16.sp,
+                fontSize = labelFontSize.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.clickable { navController.navigate(AuthRoute.SignIn1) }
+                modifier = Modifier.clickable {
+                    navController.navigate(AuthRoute.SignIn1)
+                }
             )
         }
-
     }
 }

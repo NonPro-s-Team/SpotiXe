@@ -1,5 +1,7 @@
 package com.example.spotixe.Pages.Pages.StartPages
 
+import Components.Buttons.GoogleSignInButtonFirebase
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -23,15 +25,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import com.example.spotixe.AuthRoute
+import com.example.spotixe.Graph.AUTH
+import com.example.spotixe.MainRoute
 import com.example.spotixe.R
 
 @Composable
-fun Start2Screen(navController: NavController){
-    Box(
+fun Start2Screen(navController: NavController) {
+    val context = LocalContext.current
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(
@@ -45,120 +53,106 @@ fun Start2Screen(navController: NavController){
                     end = Offset(0f, 1800f)
                 )
             )
-    )
-    {
-        Column (modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(),
+    ) {
+        val screenHeight = maxHeight
+        val screenWidth = maxWidth
+
+        // Responsive sizes
+        val logoHeight = screenHeight * 0.28f
+        val titleFontSize = screenWidth.value * 0.10f          // responsive text
+        val buttonHeight = screenHeight * 0.085f
+        val bigSpacer = screenHeight * 0.15f
+        val smallSpacer = screenHeight * 0.03f
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
-            Spacer(Modifier.height(80.dp))
+        ) {
+            Spacer(modifier = Modifier.height(smallSpacer))
 
             Image(
                 painter = painterResource(R.drawable.spotixe_logo),
                 contentDescription = null,
-                modifier = Modifier
-                    .height(250.dp)
-
+                modifier = Modifier.height(logoHeight)
             )
 
-            Spacer(Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(smallSpacer))
 
             Text(
                 "Melody comes\nwith you all along",
                 color = Color.White,
-                fontSize = 40.sp,
+                fontSize = titleFontSize.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                lineHeight = 50.sp
+                lineHeight = (titleFontSize * 1.2f).sp
             )
 
-            Spacer(Modifier.height(140.dp))
+            Spacer(modifier = Modifier.height(bigSpacer))
 
-            Button(
-                onClick = {navController.navigate(AuthRoute.SignIn1)},
+            // ----- BUTTON 1 -----
+            ResponsiveButton(
+                label = "Continue with phone",
+                height = buttonHeight,
+                onClick = { navController.navigate(AuthRoute.SignUpPhone1) }
+            )
+
+            Spacer(modifier = Modifier.height(smallSpacer))
+
+            // ----- BUTTON 2 -----
+            ResponsiveButton(
+                label = "Continue with email",
+                height = buttonHeight,
+                onClick = { navController.navigate(AuthRoute.SignIn1) }
+            )
+
+            Spacer(modifier = Modifier.height(smallSpacer))
+
+            // ----- BUTTON 3 Google with Firebase Auth -----
+            GoogleSignInButtonFirebase(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(65.dp)
-                    .padding(bottom = 10.dp)
-                    .padding(start = 20.dp)
-                    .padding(end = 20.dp)
-                    .imePadding(),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDDDDDD))
-            ) {
-                Text(
-                    "Continue with phone",
-                    color = Color.Black,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(Modifier.height(10.dp))
-
-            Button(
-                onClick = {navController.navigate(AuthRoute.SignIn1)},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(65.dp)
-                    .padding(bottom = 10.dp)
-                    .padding(start = 20.dp)
-                    .padding(end = 20.dp)
-                    .imePadding(),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDDDDDD))
-            ) {
-                Text(
-                    "Continue with email",
-                    color = Color.Black,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(Modifier.height(10.dp))
-
-            Button(
-                onClick = {},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(65.dp)
-                    .padding(bottom = 10.dp)
-                    .padding(start = 20.dp)
-                    .padding(end = 20.dp)
-                    .imePadding(),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDDDDDD))
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.align(Alignment.CenterStart)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.google_logo),
-                            contentDescription = "Google Logo",
-                            modifier = Modifier.size(30.dp)
-                        )
+                    .height(buttonHeight),
+                containerColor = Color(0xFFDDDDDD),
+                cornerRadius = 28,
+                onSuccess = { loginResponse ->
+                    // Successfully logged in - navigate to Home
+                    Toast.makeText(context, "Welcome ${loginResponse.user.username}!", Toast.LENGTH_SHORT).show()
+                    navController.navigate(MainRoute.Home) {
+                        popUpTo(AUTH) { inclusive = true }
+                        launchSingleTop = true
                     }
-
-                    Text(
-                        text = "Continue with Google",
-                        color = Color.Black,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
+                },
+                onError = { error ->
+                    // Error already handled with Toast in the component
+                    Toast.makeText(
+                        context,
+                        "Sign in failed: ${error.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-            }
+            )
         }
+    }
+}
+
+@Composable
+fun ResponsiveButton(label: String, height: Dp, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height),
+        shape = RoundedCornerShape(28.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDDDDDD))
+    ) {
+        Text(
+            label,
+            color = Color.Black,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
     }
 }

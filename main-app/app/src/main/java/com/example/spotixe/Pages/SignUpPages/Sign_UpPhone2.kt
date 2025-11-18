@@ -9,11 +9,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,71 +48,99 @@ import com.example.spotixe.R
 import com.example.spotixe.services.verifyOtpCode
 
 @Composable
-fun Sign_UpPhone2Screen(navController: NavController){
+fun Sign_UpPhone2Screen(navController: NavController) {
+
     val green = Color(0xFF58BA47)
-    var otpValue = rememberSaveable { mutableStateOf("") }
+
+    val otpValue = rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val activity = context as Activity
+
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var isResending by rememberSaveable { mutableStateOf(false) }
     var resendCountdown by rememberSaveable { mutableStateOf(0) }
-    Box(
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                color = Color(0xFF121212)
-            )
-    )
-    {
-        Row (
+            .background(Color(0xFF121212))
+    ) {
+        val screenHeight = maxHeight
+        val screenWidth = maxWidth
+
+        // -------- Responsive Values ---------
+        val logoHeight = screenHeight * 0.22f
+        val titleFontSize = screenWidth.value * 0.085f
+        val subTitleFontSize = screenWidth.value * 0.060f
+        val labelFontSize = screenWidth.value * 0.045f
+        val smallFontSize = screenWidth.value * 0.038f
+
+        val otpBoxSize = screenWidth * 0.12f
+
+        val buttonWidth = screenWidth * 0.45f
+        val buttonHeight = screenHeight * 0.065f
+
+        val rowButtonHeight = screenHeight * 0.060f
+
+        val smallSpacer = screenHeight * 0.02f
+        val normalSpacer = screenHeight * 0.03f
+        val bigSpacer = screenHeight * 0.05f
+        // ------------------------------------
+
+        // Back Button
+        Row(
             modifier = Modifier
                 .padding(start = 15.dp)
                 .statusBarsPadding(),
             horizontalArrangement = Arrangement.Start
-        ){
+        ) {
             BackButton(navController)
         }
 
+        // MAIN CONTENT
         Column(
             modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(horizontal = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(50.dp))
+
+            Spacer(modifier = Modifier.height(bigSpacer))
 
             Image(
                 painter = painterResource(R.drawable.spotixe_logo),
                 contentDescription = null,
-                modifier = Modifier.height(180.dp)
+                modifier = Modifier.height(logoHeight)
             )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(smallSpacer))
 
             Text(
                 "Create your account",
-                fontSize = 35.sp,
+                fontSize = titleFontSize.sp,
                 fontWeight = FontWeight.Bold,
                 color = green,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(smallSpacer))
 
             Text(
                 "Enter your OTP",
-                fontSize = 25.sp,
+                fontSize = subTitleFontSize.sp,
                 color = green,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(normalSpacer))
 
+            // ----------- OTP INPUT FIELD -----------
             OtpInputField(
                 otp = otpValue,
                 count = 6,
                 mask = true,
+                boxSize = otpBoxSize,      // responsive box size
+                textSize = labelFontSize.sp,
                 onFilled = { code ->
                     if (code.length == 6) {
                         isLoading = true
@@ -122,7 +149,7 @@ fun Sign_UpPhone2Screen(navController: NavController){
                             code = code,
                             onSuccess = {
                                 isLoading = false
-                                Toast.makeText(context, "OTP verified successfully!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "OTP verified!", Toast.LENGTH_SHORT).show()
                                 navController.navigate(AuthRoute.SignUpPhone3)
                             },
                             onError = { msg ->
@@ -134,38 +161,41 @@ fun Sign_UpPhone2Screen(navController: NavController){
                 }
             )
 
+            Spacer(modifier = Modifier.height(normalSpacer))
 
-            Spacer(Modifier.height(20.dp))
-
+            // Verify Button
             Button(
                 onClick = {
-                    if (otpValue.value.isEmpty()) {
-                        Toast.makeText(context, "Please enter OTP code", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (otpValue.value.length != 6) {
-                        Toast.makeText(context, "OTP code must be 6 digits", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    isLoading = true
-                    verifyOtpCode(
-                        activity = activity,
-                        code = otpValue.value,
-                        onSuccess = {
-                            isLoading = false
-                            Toast.makeText(context, "OTP verified successfully!", Toast.LENGTH_SHORT).show()
-                            navController.navigate(AuthRoute.SignUpPhone3)
-                        },
-                        onError = { msg ->
-                            isLoading = false
-                            Toast.makeText(context, "Verification failed: $msg", Toast.LENGTH_LONG).show()
+                    val code = otpValue.value
+                    when {
+                        code.isEmpty() ->
+                            Toast.makeText(context, "Please enter OTP", Toast.LENGTH_SHORT).show()
+
+                        code.length != 6 ->
+                            Toast.makeText(context, "OTP must be 6 digits", Toast.LENGTH_SHORT).show()
+
+                        else -> {
+                            isLoading = true
+                            verifyOtpCode(
+                                activity = activity,
+                                code = code,
+                                onSuccess = {
+                                    isLoading = false
+                                    Toast.makeText(context, "Verified!", Toast.LENGTH_SHORT).show()
+                                    navController.navigate(AuthRoute.SignUpPhone3)
+                                },
+                                onError = { msg ->
+                                    isLoading = false
+                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                }
+                            )
                         }
-                    )
+                    }
                 },
                 enabled = !isLoading && otpValue.value.length == 6,
                 modifier = Modifier
-                    .width(150.dp)
-                    .height(45.dp),
+                    .width(buttonWidth)
+                    .height(buttonHeight),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = green,
                     contentColor = Color.Black
@@ -173,37 +203,36 @@ fun Sign_UpPhone2Screen(navController: NavController){
             ) {
                 Text(
                     text = if (isLoading) "Verifying..." else "Verify",
-                    fontSize = 18.sp
+                    fontSize = labelFontSize.sp
                 )
             }
 
+            Spacer(modifier = Modifier.height(normalSpacer))
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Resend and Change Phone buttons
+            // ------------- Resend + Change Number Row -------------
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+
                 // Resend OTP Button
                 Button(
                     onClick = {
-                        if (isResending || resendCountdown > 0) {
-                            Toast.makeText(context, "Please wait before resending", Toast.LENGTH_SHORT).show()
+                        if (resendCountdown > 0) {
+                            Toast.makeText(context, "Please wait...", Toast.LENGTH_SHORT).show()
                             return@Button
                         }
                         isResending = true
-                        // TODO: Call resend OTP API here
-                        Toast.makeText(context, "OTP code resent successfully", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "OTP resent", Toast.LENGTH_SHORT).show()
                         isResending = false
                         resendCountdown = 60
                     },
-                    enabled = !isResending && resendCountdown == 0,
+                    enabled = resendCountdown == 0,
                     modifier = Modifier
                         .weight(1f)
-                        .height(45.dp),
+                        .height(rowButtonHeight),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF444444),
                         contentColor = green
@@ -211,33 +240,32 @@ fun Sign_UpPhone2Screen(navController: NavController){
                 ) {
                     Text(
                         text = if (resendCountdown > 0) "Resend (${resendCountdown}s)" else "Resend OTP",
-                        fontSize = 14.sp
+                        fontSize = smallFontSize.sp
                     )
                 }
 
-                // Change Phone Number Button
+                // Change number
                 Button(
                     onClick = {
                         navController.popBackStack()
-                        Toast.makeText(context, "Please enter your phone number again", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Enter phone again", Toast.LENGTH_SHORT).show()
                     },
-                    enabled = !isLoading,
                     modifier = Modifier
                         .weight(1f)
-                        .height(45.dp),
+                        .height(rowButtonHeight),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF444444),
                         contentColor = green
                     )
                 ) {
                     Text(
-                        text = "Change Number",
-                        fontSize = 14.sp
+                        "Change Number",
+                        fontSize = smallFontSize.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(bigSpacer))
 
             Text(
                 text = buildAnnotatedString {
@@ -246,45 +274,43 @@ fun Sign_UpPhone2Screen(navController: NavController){
                     append(" with")
                 },
                 color = green,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center
+                fontSize = labelFontSize.sp
             )
 
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(normalSpacer))
 
             GoogleSignInButtonFirebase(
-                onSuccess = { loginResponse ->
-                    // Successfully logged in with JWT saved - navigate directly to Home
+                onSuccess = {
                     navController.navigate(MainRoute.Home) {
                         popUpTo(AUTH) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
                 onError = { error ->
-                    // Show error message when Google Sign In fails
                     Toast.makeText(
                         context,
-                        "Sign in failed: ${error.message ?: "Unknown error occurred"}",
+                        "Sign in failed: ${error.message}",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
             )
 
-            Spacer(modifier = Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(bigSpacer / 1.3f))
 
             Text(
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = green)) {append("Already have account ?\n")}
-                    withStyle(style = SpanStyle(color = green)) { append("Click here to ") }
-                    withStyle(style = SpanStyle(color = Color.White, fontStyle = FontStyle.Italic)) { append("sign in") }
+                    withStyle(SpanStyle(color = green)) { append("Already have account?\n") }
+                    withStyle(SpanStyle(color = green)) { append("Click here to ") }
+                    withStyle(SpanStyle(color = Color.White, fontStyle = FontStyle.Italic)) {
+                        append("sign in")
+                    }
                 },
-                fontSize = 16.sp,
+                fontSize = labelFontSize.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.clickable { navController.navigate(AuthRoute.SignIn1) }
+                modifier = Modifier.clickable {
+                    navController.navigate(AuthRoute.SignIn1)
+                }
             )
-
-
         }
-
     }
 }

@@ -19,7 +19,7 @@ fun BackButton(navController: NavController){
         modifier = Modifier
             .padding(start = 8.dp)
             .size(40.dp)
-            .clickable { navController.popBackStack() },
+            .clickable { navController.navigateUp() },
         contentAlignment = Alignment.Center
     ) {
         Icon(

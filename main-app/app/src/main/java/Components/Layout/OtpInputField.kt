@@ -14,6 +14,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -22,7 +24,9 @@ fun OtpInputField(
     otp: MutableState<String>,
     count: Int = 6,
     mask: Boolean = false,
-    onFilled: (String) -> Unit = {}
+    onFilled: (String) -> Unit = {},
+    boxSize: Dp,
+    textSize: TextUnit
 ) {
     val focusRequester = remember { FocusRequester() }
 

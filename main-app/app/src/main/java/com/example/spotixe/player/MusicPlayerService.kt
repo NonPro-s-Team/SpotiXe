@@ -13,6 +13,10 @@ import com.example.spotixe.MainActivity
  */
 class MusicPlayerService : MediaSessionService() {
     
+    companion object {
+        const val ACTION_OPEN_PLAYER = "com.example.spotixe.OPEN_PLAYER"
+    }
+
     private var mediaSession: MediaSession? = null
     private lateinit var player: ExoPlayer
 
@@ -30,7 +34,11 @@ class MusicPlayerService : MediaSessionService() {
             }
         
         // Create session activity pending intent
-        val sessionActivityIntent = Intent(this, MainActivity::class.java)
+        // Add action to tell MainActivity to open player screen
+        val sessionActivityIntent = Intent(this, MainActivity::class.java).apply {
+            action = ACTION_OPEN_PLAYER
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
         val sessionActivityPendingIntent = PendingIntent.getActivity(
             this,
             0,
