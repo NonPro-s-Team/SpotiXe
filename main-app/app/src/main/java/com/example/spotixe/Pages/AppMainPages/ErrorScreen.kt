@@ -67,7 +67,7 @@ fun ErrorScreen(
                 onClick = onRetry,
                 shape = RoundedCornerShape(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1DB954) // màu xanh Spotify
+                    containerColor = Color(0xFF1DB954)
                 ),
                 modifier = Modifier
                     .height(48.dp)

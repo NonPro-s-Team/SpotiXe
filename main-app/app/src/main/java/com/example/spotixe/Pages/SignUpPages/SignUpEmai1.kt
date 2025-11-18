@@ -1,7 +1,8 @@
 package com.example.spotixe.Pages.Pages.SignUpPages
 
 import Components.Buttons.BackButton
-import android.app.Activity
+import Components.Buttons.GoogleSignInButtonFirebase
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,17 +16,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -34,38 +29,35 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.spotixe.AuthRoute
-import com.example.spotixe.Graph
+import com.example.spotixe.MainRoute
+import com.example.spotixe.Graph.AUTH
 import com.example.spotixe.R
-import com.example.spotixe.services.startPhoneVerification
-import com.example.spotixe.services.normalizeVietnamPhone
-import Components.Buttons.GoogleSignInButtonFirebase
 
 @Composable
-fun Sign_UpPhone1Screen(navController: NavController){
-    var phoneNumber by rememberSaveable { mutableStateOf("") }
-    var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
-    var isLoading by rememberSaveable { mutableStateOf(false) }
-
+fun Sign_UpEmail1Screen(
+    navController: NavController
+){
+    val green = Color(0xFF58BA47)
     val context = LocalContext.current
-    val activity = context as Activity
-    var green = Color(0xFF58BA47)
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -98,7 +90,7 @@ fun Sign_UpPhone1Screen(navController: NavController){
                 modifier = Modifier.height(180.dp)
             )
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(10.dp))
 
             Text(
                 "Create your account",
@@ -108,12 +100,10 @@ fun Sign_UpPhone1Screen(navController: NavController){
                 textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(40.dp))
+            Spacer(Modifier.height(20.dp))
 
-
-            // Phone number label
             Text(
-                text = "Phone number",
+                text = "Name",
                 color = green,
                 fontSize = 18.sp,
                 modifier = Modifier.align(Alignment.Start)
@@ -121,56 +111,80 @@ fun Sign_UpPhone1Screen(navController: NavController){
 
             Spacer(Modifier.height(8.dp))
 
-            // TextField cho Phone number
+            // TextField cho Name
             TextField(
-                value = phoneNumber,
+                value = name,
                 onValueChange = {
-                    phoneNumber = it
+                    name = it
                 },
+                textStyle = TextStyle(color = green, fontSize = 16.sp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF444444),
                     unfocusedContainerColor = Color(0xFF444444),
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = Color.White,
+                    focusedTextColor = green,
+                    unfocusedTextColor = green,
+                    cursorColor = green,
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(shape = RoundedCornerShape(12.dp))
             )
 
+            Spacer(Modifier.height(10.dp))
+
+            // Email label
+            Text(
+                text = "Email",
+                color = green,
+                fontSize = 18.sp,
+                modifier = Modifier.align(Alignment.Start)
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // TextField cho Email
+            TextField(
+                value = email,
+                onValueChange = {
+                    email = it
+                },
+                textStyle = TextStyle(color = green, fontSize = 16.sp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFF444444),
+                    unfocusedContainerColor = Color(0xFF444444),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = green,
+                    unfocusedTextColor = green,
+                    cursorColor = green,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shape = RoundedCornerShape(12.dp))
+            )
 
             Spacer(Modifier.height(20.dp))
 
             Button(
                 onClick = {
-                    isLoading = true
-                    errorMessage = null
-
-                    val normalizedPhone = normalizeVietnamPhone(phoneNumber)
-
-                    if (!normalizedPhone.startsWith("+84") || normalizedPhone.length < 11) {
-                        isLoading = false
-                        errorMessage = "Số điện thoại không hợp lệ, hãy nhập dạng 0xxxxxxxxx hoặc +84xxxxxxxxx"
-                        return@Button
-                    }
-
-                    startPhoneVerification(
-                        activity = activity,
-                        rawPhone = normalizedPhone,
-                        onCodeSent = {
-                            isLoading = false
-
-                            navController.navigate(AuthRoute.SignUpPhone2)
-                        },
-                        onError = { msg ->
-                            isLoading = false
-                            errorMessage = msg
+                    // Validate and show appropriate Toast messages
+                    when {
+                        name.isEmpty() -> {
+                            Toast.makeText(context, "Please enter your name", Toast.LENGTH_SHORT).show()
                         }
-                    )
+                        email.isEmpty() -> {
+                            Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
+                        }
+                        !email.contains("@") -> {
+                            Toast.makeText(context, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            navController.navigate(AuthRoute.SignUpEmail2)
+                        }
+                    }
                 },
-                enabled = !isLoading && phoneNumber.isNotBlank(),
                 modifier = Modifier
                     .width(150.dp)
                     .height(45.dp),
@@ -178,31 +192,20 @@ fun Sign_UpPhone1Screen(navController: NavController){
                     containerColor = green,
                     contentColor = Color.Black
                 )
+
             ) {
                 Text(
-                    text = if (isLoading) "Sending..." else "Continue",
+                    text = "Sign up",
                     fontSize = 18.sp
                 )
             }
 
-
-
-            if (errorMessage != null) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = errorMessage!!,
-                    color = Color.Red,
-                    fontSize = 13.sp
-                )
-            }
-
-
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = buildAnnotatedString {
                     append("Or ")
-                    withStyle(style = SpanStyle(color = Color.White)) { append("sign up") }
+                    withStyle(style = SpanStyle(color = Color.White)) { append("Continue") }
                     append(" with")
                 },
                 color = green,
@@ -214,30 +217,34 @@ fun Sign_UpPhone1Screen(navController: NavController){
 
             GoogleSignInButtonFirebase(
                 onSuccess = { loginResponse ->
-                    navController.navigate(Graph.MAIN) {
-                        popUpTo(Graph.AUTH) { inclusive = true }
+                    // Successfully logged in with JWT saved - navigate directly to Home
+                    navController.navigate(MainRoute.Home) {
+                        popUpTo(AUTH) { inclusive = true }
                         launchSingleTop = true
                     }
                 },
                 onError = { error ->
-                    // Error handled with Toast
+                    // Show error message when Google Sign In fails
+                    Toast.makeText(
+                        context,
+                        "Sign in failed: ${error.message ?: "Unknown error occurred"}",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             )
 
-            Spacer(modifier = Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(15.dp))
 
             Text(
                 text = buildAnnotatedString {
                     withStyle(style = SpanStyle(color = green)) {append("Already have account ?\n")}
                     withStyle(style = SpanStyle(color = green)) { append("Click here to ") }
-                    withStyle(style = SpanStyle(color = Color.White, fontStyle = FontStyle.Italic)) { append("sign up") }
+                    withStyle(style = SpanStyle(color = Color.White, fontStyle = FontStyle.Italic)) { append("sign in") }
                 },
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.clickable { println("Navigate to Sign Ip") }
+                modifier = Modifier.clickable { navController.navigate(AuthRoute.SignIn1) }
             )
-
-
         }
 
     }

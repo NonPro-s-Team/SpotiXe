@@ -130,7 +130,7 @@ class MainActivity : ComponentActivity() {
 
                             // AUTH GRAPH
                             navigation(
-                                startDestination = AuthRoute.SignIn1,
+                                startDestination = AuthRoute.SignUpPhone1,
                                 route = Graph.AUTH
                             ) {
                                 composable(AuthRoute.SignIn1) { Sign_in1Screen(navController) }
@@ -298,7 +298,11 @@ class MainActivity : ComponentActivity() {
                                 },
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .padding(start = 16.dp, end = 16.dp, bottom = inner.calculateBottomPadding() + 8.dp)
+                                    .padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = inner.calculateBottomPadding() + 8.dp
+                                    )
                             )
                         }
 

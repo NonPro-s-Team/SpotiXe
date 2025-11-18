@@ -61,7 +61,7 @@ fun ExploreScreen(navController: NavHostController) {
                             .padding(top = 12.dp, start = 8.dp, end = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        BackButton(navController)
+//                        BackButton(navController)
 
                         Text(
                             text = "Khám phá",

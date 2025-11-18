@@ -51,8 +51,13 @@ fun ApiSongViewScreen(
                 song = result
                 isLoading = false
 
-                // Tự động phát nhạc khi vào màn hình
-                playerViewModel.playSong(result)
+                // Chỉ phát nhạc nếu đây là bài hát mới (khác với bài đang phát)
+                // Nếu đang phát cùng bài thì không reset về giây 0
+                val currentlyPlayingSong = playerViewModel.currentSong.value
+                if (currentlyPlayingSong == null || currentlyPlayingSong.songId != result.songId) {
+                    playerViewModel.playSong(result)
+                }
+                // Nếu đã đang phát bài này rồi thì giữ nguyên vị trí hiện tại
 
                 // Lấy tên nghệ sĩ nếu có artistId
                 result.artistId?.let { artistId ->
@@ -72,8 +77,15 @@ fun ApiSongViewScreen(
     val progress by playerViewModel.progress.collectAsState()
     val currentPosition by playerViewModel.currentPosition.collectAsState()
     val duration by playerViewModel.duration.collectAsState()
-    
+    val repeatMode by playerViewModel.repeatMode.collectAsState()
+    val playlist by playerViewModel.playlist.collectAsState()
+    val currentIndex by playerViewModel.currentIndex.collectAsState()
+
     var isLiked by remember { mutableStateOf(false) }
+
+    // Check if there are previous/next songs in the playlist
+    val hasPrevious = playlist.size > 1 && currentIndex > 0
+    val hasNext = playlist.size > 1 && currentIndex < playlist.size - 1
 
     Scaffold(
         containerColor = Color(0xFF121212),
@@ -222,7 +234,7 @@ fun ApiSongViewScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Like button
+                            // Like button (bên trái nhất)
                             IconButton(onClick = { isLiked = !isLiked }) {
                                 Icon(
                                     imageVector = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
@@ -232,7 +244,20 @@ fun ApiSongViewScreen(
                                 )
                             }
 
-                            // Play/Pause button
+                            // Previous button (bên trái nút play)
+                            IconButton(
+                                onClick = { playerViewModel.playPrevious() },
+                                enabled = hasPrevious // Disable if no previous song
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.SkipPrevious,
+                                    contentDescription = "Previous",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(38.dp)
+                                )
+                            }
+
+                            // Play/Pause button (ở giữa)
                             FilledTonalButton(
                                 onClick = {
                                     if (currentSong?.songId == song!!.songId) {
@@ -257,13 +282,44 @@ fun ApiSongViewScreen(
                                 )
                             }
 
-                            // Add to playlist button
-                            IconButton(onClick = { /* TODO */ }) {
+                            // Next button (bên phải nút play)
+                            IconButton(
+                                onClick = { playerViewModel.playNext() },
+                                enabled = hasNext // Disable if no next song
+                            ) {
                                 Icon(
-                                    painter = painterResource(com.example.spotixe.R.drawable.list),
-                                    contentDescription = "playlist",
-                                    tint = Color(0xFF58BA47),
-                                    modifier = Modifier.size(32.dp)
+                                    imageVector = Icons.Filled.SkipNext,
+                                    contentDescription = "Next",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(38.dp)
+                                )
+                            }
+
+                            // Repeat button (bên phải nhất)
+                            IconButton(
+                                onClick = {
+                                    // Cycle through repeat modes: 0 -> 1 -> 2 -> 0
+                                    val newMode = when (repeatMode) {
+                                        0 -> 1  // Off -> Repeat Once
+                                        1 -> 2  // Repeat Once -> Repeat All
+                                        else -> 0  // Repeat All -> Off
+                                    }
+                                    playerViewModel.setRepeatMode(newMode)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = when (repeatMode) {
+                                        1 -> Icons.Filled.RepeatOne  // Repeat once
+                                        2 -> Icons.Filled.Repeat     // Repeat all (highlighted)
+                                        else -> Icons.Filled.Repeat  // Off (dimmed)
+                                    },
+                                    contentDescription = when (repeatMode) {
+                                        0 -> "Repeat Off"
+                                        1 -> "Repeat Once"
+                                        else -> "Repeat All"
+                                    },
+                                    tint = if (repeatMode > 0) Color(0xFF58BA47) else Color.White.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(30.dp)
                                 )
                             }
                         }

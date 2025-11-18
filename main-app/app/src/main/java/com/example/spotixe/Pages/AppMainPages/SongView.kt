@@ -61,6 +61,13 @@ fun SongViewScreen(
             ) {
                 BackButton(navController)
                 Spacer(Modifier.width(4.dp))
+
+                Text(
+                    "Now Playing",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
 
             // Cover

@@ -65,6 +65,10 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     private val _currentIndex = MutableStateFlow(0)
     val currentIndex: StateFlow<Int> = _currentIndex.asStateFlow()
 
+    // Repeat mode: 0 = no repeat, 1 = repeat once, 2 = repeat all
+    private val _repeatMode = MutableStateFlow(0)
+    val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
+
     // Progress update job
     private var progressJob: Job? = null
     
@@ -128,6 +132,19 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     fun playSong(song: Song) {
         _currentSong.value = song
         
+        // Tự động tạo playlist với bài hát này nếu chưa có trong playlist
+        // hoặc nếu playlist rỗng
+        if (_playlist.value.isEmpty() || _playlist.value.none { it.songId == song.songId }) {
+            _playlist.value = listOf(song)
+            _currentIndex.value = 0
+        } else {
+            // Nếu bài hát đã có trong playlist, cập nhật index
+            val index = _playlist.value.indexOfFirst { it.songId == song.songId }
+            if (index >= 0) {
+                _currentIndex.value = index
+            }
+        }
+
         val mediaItem = MediaItem.Builder()
             .setUri(song.audioFileUrl)
             .setMediaId(song.songId.toString())
@@ -146,7 +163,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             play()
         }
         
-        Log.d(TAG, "Playing song: ${song.title}")
+        Log.d(TAG, "Playing song: ${song.title}, playlist size: ${_playlist.value.size}, index: ${_currentIndex.value}")
     }
     
     /**
@@ -339,6 +356,20 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
     
+    /**
+     * Set repeat mode
+     * 0 = no repeat, 1 = repeat once, 2 = repeat all
+     */
+    fun setRepeatMode(mode: Int) {
+        _repeatMode.value = mode
+        mediaController?.repeatMode = when (mode) {
+            1 -> Player.REPEAT_MODE_ONE
+            2 -> Player.REPEAT_MODE_ALL
+            else -> Player.REPEAT_MODE_OFF
+        }
+        Log.d(TAG, "Repeat mode set to: $mode")
+    }
+
     override fun onCleared() {
         mediaController?.release()
         controllerFuture?.let {

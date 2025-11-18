@@ -65,7 +65,8 @@ import com.google.firebase.auth.ktx.auth
 
 @Composable
 fun Sign_UpPhone3Screen(navController: NavController){
-    var green = Color(0xFF58BA47)
+    val green = Color(0xFF58BA47)
+    val context = LocalContext.current
     val currentUser = Firebase.auth.currentUser
     val phone = currentUser?.phoneNumber
     var username by rememberSaveable { mutableStateOf("") }
@@ -140,7 +141,7 @@ fun Sign_UpPhone3Screen(navController: NavController){
                     unfocusedContainerColor = Color(0xFF444444),
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    cursorColor = Color.White,
+                    cursorColor = Color(0xFF58BA47),
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -168,7 +169,7 @@ fun Sign_UpPhone3Screen(navController: NavController){
                         unfocusedContainerColor = Color(0xFF444444),
                         focusedIndicatorColor = if (isPasswordValid) Color.Transparent else Color.Red,
                         unfocusedIndicatorColor = if (isPasswordValid) Color.Transparent else Color.Red,
-                        cursorColor = Color.White
+                        cursorColor = Color(0xFF58BA47)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -231,7 +232,7 @@ fun Sign_UpPhone3Screen(navController: NavController){
                         unfocusedContainerColor = Color(0xFF444444),
                         focusedIndicatorColor = if (isRePasswordMatch || repassword.isEmpty()) Color.Transparent else Color.Red,
                         unfocusedIndicatorColor = if (isRePasswordMatch || repassword.isEmpty()) Color.Transparent else Color.Red,
-                        cursorColor = Color.White
+                        cursorColor = Color(0xFF58BA47)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
