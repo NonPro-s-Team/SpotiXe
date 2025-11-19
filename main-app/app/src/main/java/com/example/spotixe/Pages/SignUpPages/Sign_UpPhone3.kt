@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.spotixe.AuthRoute
+import com.example.spotixe.MainRoute
 import com.example.spotixe.R
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.auth.ktx.auth
@@ -283,7 +284,7 @@ fun Sign_UpPhone3Screen(navController: NavController) {
 
             Button(
                 onClick = {
-                    navController.navigate(AuthRoute.SignIn1)
+                    navController.navigate(MainRoute.Home)
                 },
                 enabled = isPasswordValid && isRePasswordMatch && username.isNotEmpty(),
                 modifier = Modifier

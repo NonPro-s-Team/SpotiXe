@@ -8,7 +8,6 @@ object Graph {
 object StartRoute {
     const val Start1 = "start1"
     const val Start2 = "start2"
-    const val Start3 = "start3"
 }
 
 object AuthRoute {

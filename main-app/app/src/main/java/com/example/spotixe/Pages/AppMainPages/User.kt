@@ -63,6 +63,8 @@ import com.example.spotixe.player.rememberPlayerVMActivity
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.items
 import androidx.navigation.NavController
+import com.example.spotixe.StartRoute
+
 @Composable
 fun UserScreen(navController: NavHostController) {
     val context = LocalContext.current
@@ -135,7 +137,7 @@ fun UserScreen(navController: NavHostController) {
                             onClick = {
                                 scope.launch {
                                     authDataStore.clearAll()
-                                    navController.navigate(Graph.AUTH) {
+                                    navController.navigate(StartRoute.Start2) {
                                         popUpTo(Graph.MAIN) { inclusive = true }
                                     }
                                 }
