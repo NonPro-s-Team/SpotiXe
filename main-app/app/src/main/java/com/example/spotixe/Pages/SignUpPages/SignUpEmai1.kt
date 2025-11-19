@@ -7,12 +7,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,6 +49,7 @@ import com.example.spotixe.AuthRoute
 import com.example.spotixe.MainRoute
 import com.example.spotixe.Graph.AUTH
 import com.example.spotixe.R
+import com.example.spotixe.viewmodel.SignUpViewModel
 
 @Composable
 fun Sign_UpEmail1Screen(
@@ -193,7 +192,11 @@ fun Sign_UpEmail1Screen(
                             Toast.makeText(context, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
                         }
                         else -> {
-                            navController.navigate(AuthRoute.SignUpEmail2) { launchSingleTop = true }
+                            // Save email and name to SignUpViewModel singleton
+                            SignUpViewModel.setData(email, name)
+                            navController.navigate(AuthRoute.SignUpEmail2) {
+                                launchSingleTop = true
+                            }
                         }
                     }
                 },

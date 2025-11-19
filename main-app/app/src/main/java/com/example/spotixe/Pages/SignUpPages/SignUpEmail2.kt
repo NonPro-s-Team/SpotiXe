@@ -8,12 +8,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,6 +25,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -61,6 +60,8 @@ import com.example.spotixe.AuthRoute
 import com.example.spotixe.MainRoute
 import com.example.spotixe.Graph.AUTH
 import com.example.spotixe.R
+import com.example.spotixe.viewmodel.SignUpViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun Sign_UpEmail2Screen(
@@ -68,11 +69,17 @@ fun Sign_UpEmail2Screen(
 ) {
     val green = Color(0xFF58BA47)
     val context = LocalContext.current
+    val firebaseAuth = FirebaseAuth.getInstance()
+
+    // Retrieve email from SignUpViewModel singleton
+    val email = SignUpViewModel.loadEmail()
 
     var password by rememberSaveable { mutableStateOf("") }
     var repassword by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     var rePasswordVisible by rememberSaveable { mutableStateOf(false) }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
+    var isVerificationEmailSent by rememberSaveable { mutableStateOf(false) }
 
     val isPasswordValid = isValidPassword(password)
     val isRePasswordMatch = repassword.isNotEmpty() && repassword == password
@@ -145,164 +152,308 @@ fun Sign_UpEmail2Screen(
 
 
             // ------------------ PASSWORD ------------------
-            Spacer(modifier = Modifier.height(normalSpacer / 2))
+            if (!isVerificationEmailSent) {
+                Spacer(modifier = Modifier.height(normalSpacer / 2))
 
-            Text(
-                text = "Password",
-                color = green,
-                fontSize = labelFontSize.sp,
-                modifier = Modifier.align(Alignment.Start)
-            )
-
-            Spacer(modifier = Modifier.height(smallSpacer / 1.3f))
-
-            Column {
-                TextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF444444),
-                        unfocusedContainerColor = Color(0xFF444444),
-                        focusedIndicatorColor = if (isPasswordValid) Color.Transparent else Color.Red,
-                        unfocusedIndicatorColor = if (isPasswordValid) Color.Transparent else Color.Red,
-                        focusedTextColor = green,
-                        unfocusedTextColor = green,
-                        cursorColor = green
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp)),
-                    placeholder = { Text("Enter password", color = Color.LightGray) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Next
-                    ),
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = null,
-                                tint = green
-                            )
-                        }
-                    }
+                Text(
+                    text = "Password",
+                    color = green,
+                    fontSize = labelFontSize.sp,
+                    modifier = Modifier.align(Alignment.Start)
                 )
 
-                if (!isPasswordValid && password.isNotEmpty()) {
-                    Text(
-                        text = "Password must be at least 8 characters, include uppercase, lowercase and number",
-                        color = Color.Red,
-                        fontSize = warningFontSize.sp,
-                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-                    )
-                }
-            }
+                Spacer(modifier = Modifier.height(smallSpacer / 1.3f))
 
-
-            // ------------------ CONFIRM PASSWORD ------------------
-            Spacer(modifier = Modifier.height(normalSpacer / 2))
-
-            Text(
-                text = "Confirm your password",
-                color = green,
-                fontSize = labelFontSize.sp,
-                modifier = Modifier.align(Alignment.Start)
-            )
-
-            Spacer(modifier = Modifier.height(smallSpacer / 1.3f))
-
-            Column {
-                TextField(
-                    value = repassword,
-                    onValueChange = { repassword = it },
-                    textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF444444),
-                        unfocusedContainerColor = Color(0xFF444444),
-                        focusedIndicatorColor = if (isRePasswordMatch || repassword.isEmpty()) Color.Transparent else Color.Red,
-                        unfocusedIndicatorColor = if (isRePasswordMatch || repassword.isEmpty()) Color.Transparent else Color.Red,
-                        focusedTextColor = green,
-                        unfocusedTextColor = green,
-                        cursorColor = green
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp)),
-                    placeholder = { Text("Re-enter password", color = Color.LightGray) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    visualTransformation = if (rePasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(onClick = { rePasswordVisible = !rePasswordVisible }) {
-                            Icon(
-                                imageVector = if (rePasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = null,
-                                tint = green
-                            )
-                        }
-                    }
-                )
-
-                if (!isRePasswordMatch && repassword.isNotEmpty()) {
-                    Text(
-                        text = "Passwords do not match",
-                        color = Color.Red,
-                        fontSize = warningFontSize.sp,
-                        modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-                    )
-                }
-            }
-
-
-            // ------------------ SIGN UP BUTTON ------------------
-            Spacer(modifier = Modifier.height(bigSpacer))
-
-            Button(
-                onClick = {
-                    when {
-                        password.isEmpty() ->
-                            Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
-
-                        !isPasswordValid ->
-                            Toast.makeText(context, "Password must be at least 8 characters, include uppercase, lowercase and number", Toast.LENGTH_LONG).show()
-
-                        repassword.isEmpty() ->
-                            Toast.makeText(context, "Please confirm your password", Toast.LENGTH_SHORT).show()
-
-                        !isRePasswordMatch ->
-                            Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
-
-                        else -> {
-                            Toast.makeText(context, "Account created successfully", Toast.LENGTH_SHORT).show()
-                            navController.navigate(MainRoute.Home) {
-                                popUpTo(AUTH) { inclusive = true }
-                                launchSingleTop = true
+                Column {
+                    TextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFF444444),
+                            unfocusedContainerColor = Color(0xFF444444),
+                            focusedIndicatorColor = if (isPasswordValid) Color.Transparent else Color.Red,
+                            unfocusedIndicatorColor = if (isPasswordValid) Color.Transparent else Color.Red,
+                            focusedTextColor = green,
+                            unfocusedTextColor = green,
+                            cursorColor = green
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp)),
+                        placeholder = { Text("Enter password", color = Color.LightGray) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
+                        ),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = null,
+                                    tint = green
+                                )
                             }
                         }
+                    )
+
+                    if (!isPasswordValid && password.isNotEmpty()) {
+                        Text(
+                            text = "Password must be at least 8 characters, include uppercase, lowercase and number",
+                            color = Color.Red,
+                            fontSize = warningFontSize.sp,
+                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                        )
                     }
-                },
-                modifier = Modifier
-                    .width(buttonWidth)
-                    .height(buttonHeight),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = green,
-                    contentColor = Color.Black
-                )
-            ) {
+                }
+
+
+                // ------------------ CONFIRM PASSWORD ------------------
+                Spacer(modifier = Modifier.height(normalSpacer / 2))
+
                 Text(
-                    text = "Sign up",
-                    fontSize = labelFontSize.sp
+                    text = "Confirm your password",
+                    color = green,
+                    fontSize = labelFontSize.sp,
+                    modifier = Modifier.align(Alignment.Start)
                 )
+
+                Spacer(modifier = Modifier.height(smallSpacer / 1.3f))
+
+                Column {
+                    TextField(
+                        value = repassword,
+                        onValueChange = { repassword = it },
+                        textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFF444444),
+                            unfocusedContainerColor = Color(0xFF444444),
+                            focusedIndicatorColor = if (isRePasswordMatch || repassword.isEmpty()) Color.Transparent else Color.Red,
+                            unfocusedIndicatorColor = if (isRePasswordMatch || repassword.isEmpty()) Color.Transparent else Color.Red,
+                            focusedTextColor = green,
+                            unfocusedTextColor = green,
+                            cursorColor = green
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp)),
+                        placeholder = { Text("Re-enter password", color = Color.LightGray) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        visualTransformation = if (rePasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { rePasswordVisible = !rePasswordVisible }) {
+                                Icon(
+                                    imageVector = if (rePasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = null,
+                                    tint = green
+                                )
+                            }
+                        }
+                    )
+
+                    if (!isRePasswordMatch && repassword.isNotEmpty()) {
+                        Text(
+                            text = "Passwords do not match",
+                            color = Color.Red,
+                            fontSize = warningFontSize.sp,
+                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                        )
+                    }
+                }
+
+
+                // ------------------ SIGN UP BUTTON ------------------
+                Spacer(modifier = Modifier.height(bigSpacer))
+
+                Button(
+                    onClick = {
+                        when {
+                            email.isEmpty() -> {
+                                Toast.makeText(context, "Email is missing. Please go back and enter your email again.", Toast.LENGTH_SHORT).show()
+                            }
+                            password.isEmpty() ->
+                                Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
+
+                            !isPasswordValid ->
+                                Toast.makeText(context, "Password must be at least 8 characters, include uppercase, lowercase and number", Toast.LENGTH_LONG).show()
+
+                            repassword.isEmpty() ->
+                                Toast.makeText(context, "Please confirm your password", Toast.LENGTH_SHORT).show()
+
+                            !isRePasswordMatch ->
+                                Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+
+                            else -> {
+                                isLoading = true
+                                firebaseAuth.createUserWithEmailAndPassword(email, password)
+                                    .addOnSuccessListener { authResult ->
+                                        val currentUser = authResult.user
+                                        if (currentUser != null) {
+                                            currentUser.sendEmailVerification()
+                                                .addOnSuccessListener {
+                                                    isLoading = false
+                                                    isVerificationEmailSent = true
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Verification email sent. Please check your inbox and verify your email to continue.",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    isLoading = false
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Failed to send verification email: ${e.message ?: "Unknown error"}",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                        } else {
+                                            isLoading = false
+                                            Toast.makeText(context, "Account creation failed", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                    .addOnFailureListener { e ->
+                                        isLoading = false
+                                        val errorMessage = when {
+                                            e.message?.contains("already in use") == true -> "This email is already registered"
+                                            e.message?.contains("invalid") == true -> "Invalid email address"
+                                            else -> e.message ?: "Sign up failed"
+                                        }
+                                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .width(buttonWidth)
+                        .height(buttonHeight),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = green,
+                        contentColor = Color.Black
+                    ),
+                    enabled = !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.Black,
+                            modifier = Modifier
+                                .width(20.dp)
+                                .height(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Sign up",
+                            fontSize = labelFontSize.sp
+                        )
+                    }
+                }
             }
 
 
-            // ------------------ GOOGLE SIGN IN ------------------
+            // ------------------ EMAIL VERIFICATION CHECK ------------------
+            if (isVerificationEmailSent) {
+                Spacer(modifier = Modifier.height(bigSpacer))
+
+                Text(
+                    text = "Verification email sent!",
+                    color = Color(0xFFFFB700),
+                    fontSize = labelFontSize.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+
+                Spacer(modifier = Modifier.height(normalSpacer))
+
+                Text(
+                    text = "Please check your email inbox and click the verification link to activate your account.",
+                    color = green,
+                    fontSize = inputFontSize.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
+
+                Spacer(modifier = Modifier.height(bigSpacer))
+
+                Button(
+                    onClick = {
+                        isLoading = true
+                        val task = firebaseAuth.currentUser?.reload()
+                        if (task != null) {
+                            task.addOnSuccessListener {
+                                val isEmailVerified = firebaseAuth.currentUser?.isEmailVerified ?: false
+                                isLoading = false
+                                if (isEmailVerified) {
+                                    Toast.makeText(context, "Email verified! Account created successfully.", Toast.LENGTH_SHORT).show()
+                                    SignUpViewModel.clearData()  // Clear data after successful verification
+                                    navController.navigate(MainRoute.Home) {
+                                        popUpTo(AUTH) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                } else {
+                                    Toast.makeText(context, "Email not verified yet. Please check your inbox.", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                                .addOnFailureListener { e ->
+                                    isLoading = false
+                                    Toast.makeText(context, "Error checking verification: ${e.message ?: "Unknown error"}", Toast.LENGTH_SHORT).show()
+                                }
+                        } else {
+                            isLoading = false
+                            Toast.makeText(context, "User not found", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier = Modifier
+                        .width(buttonWidth)
+                        .height(buttonHeight),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = green,
+                        contentColor = Color.Black
+                    ),
+                    enabled = !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.Black,
+                            modifier = Modifier
+                                .width(20.dp)
+                                .height(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "I've verified my email",
+                            fontSize = labelFontSize.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(normalSpacer))
+
+                Text(
+                    text = "Didn't receive the email? Check your spam folder or try signing up again.",
+                    color = Color.Gray,
+                    fontSize = (inputFontSize * 0.9f).sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp)
+                        .clickable {
+                            isVerificationEmailSent = false
+                            password = ""
+                            repassword = ""
+                            passwordVisible = false
+                            rePasswordVisible = false
+                        }
+                )
+            }
+
             Spacer(modifier = Modifier.height(bigSpacer))
 
             Text(

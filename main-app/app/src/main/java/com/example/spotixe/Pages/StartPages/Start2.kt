@@ -104,7 +104,7 @@ fun Start2Screen(navController: NavController) {
             ResponsiveButton(
                 label = "Continue with email",
                 height = buttonHeight,
-                onClick = { navController.navigate(AuthRoute.SignIn1) }
+                onClick = { navController.navigate(AuthRoute.SignUpEmail1) }
             )
 
             Spacer(modifier = Modifier.height(smallSpacer))
