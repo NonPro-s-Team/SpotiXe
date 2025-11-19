@@ -88,31 +88,13 @@ const QRSection = () => {
               
               {/* QR Code */}
               <div className="relative bg-white p-8 sm:p-10 lg:p-12 rounded-2xl shadow-2xl">
-                {/* Placeholder QR Code - Replace with actual QR code generator */}
-                <div className="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-spotify-black to-spotify-dark rounded-xl flex items-center justify-center relative overflow-hidden">
-                  <QrCode className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 text-white" />
-                  
-                  {/* QR Pattern Overlay */}
-                  <div className="absolute inset-0 opacity-20">
-                    <div className="grid grid-cols-8 grid-rows-8 w-full h-full gap-1 p-4">
-                      {[...Array(64)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: Math.random() > 0.5 ? 1 : 0 }}
-                          transition={{ duration: 0.5, delay: i * 0.01 }}
-                          className="bg-white rounded-sm"
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Center Logo */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-16 h-16 bg-spotify-green rounded-xl flex items-center justify-center shadow-lg">
-                      <Smartphone className="w-8 h-8 text-white" />
-                    </div>
-                  </div>
+                {/* Actual QR Code */}
+                <div className="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 flex items-center justify-center">
+                  <img 
+                    src="/qr-code-dynamic.svg" 
+                    alt="QR Code to download SpotiXe app"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
 
                 {/* Corner Decorations */}

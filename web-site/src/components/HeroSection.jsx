@@ -132,13 +132,13 @@ const HeroSection = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <motion.div
           ref={containerRef}
-          className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center"
+          className="flex flex-col items-center justify-center text-center max-w-5xl mx-auto"
           variants={containerVariants}
           initial="hidden"
           animate={isVisible ? "visible" : "hidden"}
         >
-          {/* LEFT COLUMN - Content */}
-          <motion.div className="flex flex-col justify-center items-center lg:items-start text-center lg:text-left">
+          {/* Content */}
+          <motion.div className="flex flex-col justify-center items-center text-center">
             {/* Badge */}
             <motion.div
               variants={itemVariants}
@@ -214,14 +214,14 @@ const HeroSection = () => {
             {/* Stats */}
             <motion.div
               variants={itemVariants}
-              className="grid grid-cols-3 gap-6 sm:gap-10 w-full lg:w-auto"
+              className="grid grid-cols-3 gap-6 sm:gap-10 w-full max-w-2xl mx-auto"
             >
               {[
                 { value: '100M+', label: 'Songs' },
                 { value: '500K+', label: 'Artists' },
                 { value: '50M+', label: 'Users' },
               ].map((stat, index) => (
-                <div key={index} className="text-center lg:text-left">
+                <div key={index} className="text-center">
                   <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 tracking-tight">
                     {stat.value}
                   </div>
@@ -230,177 +230,6 @@ const HeroSection = () => {
                   </div>
                 </div>
               ))}
-            </motion.div>
-          </motion.div>
-
-          {/* RIGHT COLUMN - Phone Mockup */}
-          <motion.div
-            variants={itemVariants}
-            className="relative flex justify-center lg:justify-end items-center min-h-96 lg:min-h-full"
-            style={{ y: opacity }}
-          >
-            <motion.div
-              className="relative"
-              animate={{
-                y: [0, -25, 0],
-              }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              {/* Phone Container */}
-              <div className="relative mx-auto w-72 sm:w-80 lg:w-96">
-                {/* Glow Background */}
-                <motion.div
-                  className="absolute inset-0 rounded-[2.5rem] blur-2xl"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(29, 185, 84, 0.4) 0%, rgba(167, 139, 250, 0.3) 100%)',
-                  }}
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    opacity: [0.5, 0.8, 0.5],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-
-                {/* 3D Tilted Phone */}
-                <motion.div
-                  className="relative rounded-[2.5rem] overflow-hidden shadow-2xl"
-                  style={{
-                    background: 'linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5), 0 0 60px rgba(29, 185, 84, 0.2)',
-                  }}
-                  animate={{
-                    rotateX: [5, 8, 5],
-                    rotateY: [-15, -12, -15],
-                    rotateZ: [0, 2, 0],
-                  }}
-                  transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  {/* Phone Bezel */}
-                  <div className="p-3 bg-gradient-to-br from-slate-900 to-black">
-                    <div className="rounded-[2rem] overflow-hidden bg-black">
-                      {/* Status Bar / Notch */}
-                      <div className="relative h-7 bg-black flex items-center justify-center px-6">
-                        <div className="absolute inset-0 flex items-center justify-between px-6 text-xs text-white/80 font-semibold">
-                          <span>9:41</span>
-                          <div className="flex space-x-1">
-                            <div className="w-1 h-1 bg-white/80 rounded-full" />
-                            <div className="w-1 h-1 bg-white/80 rounded-full" />
-                            <div className="w-1 h-1 bg-white/80 rounded-full" />
-                          </div>
-                        </div>
-                        {/* Notch */}
-                        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-black rounded-b-3xl border-l border-r border-b border-slate-900" />
-                      </div>
-
-                      {/* Screen Content */}
-                      <div className="bg-gradient-to-b from-slate-900 to-black p-4 space-y-3 min-h-96">
-                        {/* Now Playing Card */}
-                        <motion.div
-                          className="rounded-2xl p-4 overflow-hidden backdrop-blur-sm"
-                          style={{
-                            background: 'linear-gradient(135deg, rgba(29, 185, 84, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
-                            border: '1px solid rgba(29, 185, 84, 0.2)',
-                          }}
-                          whileHover={{ scale: 1.02 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <div className="aspect-square bg-gradient-to-br from-spotify-green to-accent-blue rounded-xl mb-3 flex items-center justify-center overflow-hidden relative">
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                              className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-spotify-green to-accent-blue"
-                            >
-                              <Play className="w-12 h-12 text-white" />
-                            </motion.div>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="h-3 bg-white/30 rounded-full w-4/5" />
-                            <div className="h-2 bg-white/20 rounded-full w-3/5" />
-                          </div>
-                        </motion.div>
-
-                        {/* Playlist Items */}
-                        {[0, 1, 2].map((index) => (
-                          <motion.div
-                            key={index}
-                            className="flex items-center space-x-3 p-3 rounded-xl backdrop-blur-sm transition-all duration-300"
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              border: '1px solid rgba(255, 255, 255, 0.1)',
-                            }}
-                            whileHover={{
-                              background: 'rgba(255, 255, 255, 0.1)',
-                              x: 5,
-                            }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            <div className={`w-10 h-10 rounded-lg flex-shrink-0 bg-gradient-to-br ${
-                              index === 0 ? 'from-spotify-green to-accent-green' :
-                              index === 1 ? 'from-accent-purple to-accent-blue' :
-                              'from-accent-blue to-cyan-500'
-                            }`} />
-                            <div className="flex-1 min-w-0">
-                              <div className="h-2 bg-white/25 rounded-full w-full mb-1" />
-                              <div className="h-1.5 bg-white/15 rounded-full w-2/3" />
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Floating Decorative Elements */}
-                <motion.div
-                  className="absolute -top-6 -right-6 w-16 h-16 rounded-2xl backdrop-blur-sm flex items-center justify-center"
-                  style={{
-                    background: 'rgba(29, 185, 84, 0.15)',
-                    border: '1px solid rgba(29, 185, 84, 0.4)',
-                    boxShadow: '0 8px 32px rgba(29, 185, 84, 0.2)',
-                  }}
-                  animate={{
-                    y: [0, -15, 0],
-                    rotate: [0, 10, 0],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  <Sparkles className="w-8 h-8 text-spotify-green" />
-                </motion.div>
-
-                <motion.div
-                  className="absolute -bottom-4 -left-4 w-12 h-12 rounded-full"
-                  style={{
-                    background: 'rgba(59, 130, 246, 0.2)',
-                    boxShadow: '0 0 30px rgba(59, 130, 246, 0.3)',
-                  }}
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.3, 0.6, 0.3],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-              </div>
             </motion.div>
           </motion.div>
         </motion.div>

@@ -345,3 +345,5 @@ firebase-debug.log
 output/
 
 google-services.json
+
+node_modules/
