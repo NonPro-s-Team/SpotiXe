@@ -41,9 +41,9 @@ fun UserDetailScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val authDataStore = AuthDataStore(context)
     val userData by authDataStore.getUserData().collectAsState(initial = null)
-    
+
     val formatter = remember { DateTimeFormatter.ofPattern("dd/MM/yyyy") }
-    
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
@@ -53,8 +53,6 @@ fun UserDetailScreen(navController: NavController) {
     var errorMsg by remember { mutableStateOf("") }
 
     var editName by remember { mutableStateOf(false) }
-    var editEmail by remember { mutableStateOf(false) }
-    var editPhone by remember { mutableStateOf(false) }
     var showDobPicker by remember { mutableStateOf(false) }
     var showJoinPicker by remember { mutableStateOf(false) }
 
@@ -73,7 +71,7 @@ fun UserDetailScreen(navController: NavController) {
     val joinMillis: Long = remember(joinDate) {
         joinDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
-    
+
     val dobState = rememberDatePickerState(
         initialSelectedDateMillis = dobMillis
     )
@@ -169,34 +167,14 @@ fun UserDetailScreen(navController: NavController) {
 
             Spacer(Modifier.height(16.dp))
 
-            // Phone Field
-            EditableField(
-                label = "Số điện thoại",
-                value = phone,
-                onValueChange = { phone = it },
-                isEditing = editPhone,
-                onEditToggle = { editPhone = !editPhone },
-                keyboardType = KeyboardType.Phone
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // Date of Birth
-            DateField(
-                label = "Ngày sinh",
-                date = dob,
-                formatter = formatter,
-                onClick = { showDobPicker = true }
-            )
-
-            Spacer(Modifier.height(16.dp))
-
             // Join Date
-            DateField(
+            EditableField(
                 label = "Ngày tham gia",
-                date = joinDate,
-                formatter = formatter,
-                onClick = { showJoinPicker = true }
+                value = joinDate.toString(),
+                onValueChange = { },
+                isEditing = false,
+                onEditToggle = { },
+                enabled = false
             )
 
             Spacer(Modifier.height(24.dp))
@@ -218,7 +196,7 @@ fun UserDetailScreen(navController: NavController) {
                         errorMsg = "Tên không được để trống."
                         return@Button
                     }
-                    
+
                     isLoading = true
                     scope.launch {
                         try {
@@ -350,7 +328,7 @@ private fun EditableField(
                 keyboardType = keyboardType
             )
         )
-        
+
         if (enabled) {
             Spacer(Modifier.width(8.dp))
             IconButton(onClick = onEditToggle) {
@@ -394,7 +372,7 @@ private fun DateField(
                 unfocusedLabelColor = Color.White.copy(0.5f)
             )
         )
-        
+
         Spacer(Modifier.width(8.dp))
         IconButton(onClick = onClick) {
             Icon(
