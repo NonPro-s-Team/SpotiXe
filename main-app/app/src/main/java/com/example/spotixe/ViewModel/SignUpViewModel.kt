@@ -1,24 +1,56 @@
 package com.example.spotixe.viewmodel
 
-/**
- * Singleton object để lưu trữ email và name toàn cục
- * không bị mất khi navigate giữa các screen
- */
+import android.content.Context
+import android.content.SharedPreferences
+
 object SignUpViewModel {
+    private var context: Context? = null
+    private var sharedPref: SharedPreferences? = null
+
     var email: String = ""
     var name: String = ""
+
+    fun init(context: Context) {
+        this.context = context
+        this.sharedPref = context.getSharedPreferences("signup_pref", Context.MODE_PRIVATE)
+        // Load từ SharedPreferences khi init
+        email = sharedPref?.getString("email", "") ?: ""
+        name = sharedPref?.getString("name", "") ?: ""
+    }
 
     fun setData(email: String, name: String) {
         this.email = email
         this.name = name
+        // Lưu vào SharedPreferences
+        sharedPref?.edit()?.apply {
+            putString("email", email)
+            putString("name", name)
+            apply()
+        }
     }
 
-    fun loadEmail(): String = email
-    fun loadName(): String = name
+    fun loadEmail(): String {
+        if (email.isEmpty()) {
+            email = sharedPref?.getString("email", "") ?: ""
+        }
+        return email
+    }
+
+    fun loadName(): String {
+        if (name.isEmpty()) {
+            name = sharedPref?.getString("name", "") ?: ""
+        }
+        return name
+    }
 
     fun clearData() {
         email = ""
         name = ""
+        sharedPref?.edit()?.apply {
+            remove("email")
+            remove("name")
+            apply()
+        }
     }
 }
 
