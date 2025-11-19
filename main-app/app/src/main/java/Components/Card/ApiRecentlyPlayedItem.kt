@@ -39,32 +39,38 @@ fun ApiRecentlyPlayedItem(
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(song.coverImageUrl)
-                .crossfade(true)
-                .build(),
-            contentDescription = song.title,
-            modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = song.title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-                maxLines = 1
+        Column (
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center
+        ){
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(song.coverImageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = song.title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .size(75.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
             )
-            Text(
-                text = song.getFormattedDuration(),
-                fontSize = 15.sp,
-                color = Color(0xFFBBBBBB),
-                maxLines = 1
-            )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = song.title,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    maxLines = 1
+                )
+                Text(
+                    text = song.getFormattedDuration(),
+                    fontSize = 15.sp,
+                    color = Color(0xFFBBBBBB),
+                    maxLines = 1
+                )
+            }
         }
     }
 }
