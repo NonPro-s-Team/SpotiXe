@@ -236,6 +236,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             genre = null,
             artistId = null,
             albumId = null,
+            artistName = null,
             isActive = 1,
             createdAt = null,
             updatedAt = null,

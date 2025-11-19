@@ -80,7 +80,7 @@ fun MiniPlayerBar(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = song.genre ?: "Artist",
+                    text = song.artistName ?: "Artist",
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 12.sp,
                     maxLines = 1,

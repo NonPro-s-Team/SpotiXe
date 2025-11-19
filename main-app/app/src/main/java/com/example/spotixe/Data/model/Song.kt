@@ -26,6 +26,9 @@ data class Song(
     
     @SerializedName("artistId")
     val artistId: Long?,
+
+    @SerializedName("artistName")
+    val artistName: String?,
     
     @SerializedName("albumId")
     val albumId: Long?,
