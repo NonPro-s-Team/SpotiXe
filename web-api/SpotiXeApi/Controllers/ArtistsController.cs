@@ -135,14 +135,51 @@ public class ArtistsController : ControllerBase
     public async Task<IActionResult> DeleteArtist([FromRoute] long id, CancellationToken cancellationToken = default)
     {
         var entity = await _context.Artists.FirstOrDefaultAsync(x => x.ArtistId == id, cancellationToken);
+
         if (entity == null) return NotFound();
 
-        if (entity.IsActive == 1UL)
+        if (entity.IsActive == 0UL)
+            return NoContent();
+
+        // Soft delete Artist
+        entity.IsActive = 0UL;
+        entity.DeletedAt = DateTime.UtcNow;
+
+        // Soft delete Albums
+        var albums = await _context.Albums
+            .Where(a => a.ArtistId == id)
+            .ToListAsync(cancellationToken);
+
+        foreach (var album in albums)
         {
-            entity.IsActive = 0UL;
-            entity.DeletedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync(cancellationToken);
+            album.IsActive = 0UL;
+            album.DeletedAt = DateTime.UtcNow;
         }
+
+        // Soft delete Songs
+        var songs = await _context.Songs
+            .Where(s => s.ArtistId == id)
+            .ToListAsync(cancellationToken);
+
+        foreach (var song in songs)
+        {
+            song.IsActive = 0UL;
+            song.DeletedAt = DateTime.UtcNow;
+        }
+
+        // Xóa PlaylistSongs liên kết với các bài hát (xóa cứng)
+        // if (songs.Count > 0)
+        // {
+        //     var songIds = songs.Select(s => s.SongId).ToList();
+
+        //     var playlistSongs = await _context.PlaylistSongs
+        //         .Where(ps => songIds.Contains(ps.SongId))
+        //         .ToListAsync(cancellationToken);
+
+        //     _context.PlaylistSongs.RemoveRange(playlistSongs);
+        // }
+
+        await _context.SaveChangesAsync(cancellationToken);
 
         return NoContent();
     }
