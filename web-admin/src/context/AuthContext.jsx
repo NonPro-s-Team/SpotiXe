@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { signInWithPopup, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth, googleProvider, analytics } from '../services/firebase';
 import { logEvent } from 'firebase/analytics';
+import { loginWithBackend, logoutFromBackend } from '../services/authService';
+import { getUserData, clearAuthData } from '../utils/tokenStorage';
 
 // Create Auth Context
 const AuthContext = createContext();
@@ -29,6 +31,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [domainAuthorized, setDomainAuthorized] = useState(false);
+  const [backendUser, setBackendUser] = useState(null);
 
   /**
    * Subscribe to auth state changes
@@ -50,22 +53,29 @@ export const AuthProvider = ({ children }) => {
             photoURL: currentUser.photoURL,
           };
           
-          // Debug log
-        //   console.log('Firebase User Data:', userData);
-          
           setUser(userData);
           setDomainAuthorized(true);
+
+          // Lấy backend user data từ localStorage nếu có
+          const storedUser = getUserData();
+          if (storedUser) {
+            setBackendUser(storedUser);
+          }
         } else {
           // ❌ User KHÔNG được phép - Sign out ngay lập tức
           await signOut(auth);
           setUser(null);
           setDomainAuthorized(false);
+          setBackendUser(null);
+          clearAuthData();
           console.warn('Unauthorized domain access attempt:', currentUser.email);
         }
       } else {
         // User signed out
         setUser(null);
         setDomainAuthorized(false);
+        setBackendUser(null);
+        clearAuthData();
       }
       setLoading(false);
     });
@@ -94,6 +104,22 @@ export const AuthProvider = ({ children }) => {
           unauthorized: true 
         };
       }
+
+      // ✅ Đăng nhập với Backend bằng Firebase token
+      const firebaseToken = await signedInUser.getIdToken();
+      const backendResult = await loginWithBackend(firebaseToken);
+
+      if (!backendResult.success) {
+        // Backend authentication failed - Sign out from Firebase
+        await signOut(auth);
+        return {
+          success: false,
+          error: backendResult.error || 'Backend authentication failed'
+        };
+      }
+
+      // Lưu backend user data
+      setBackendUser(backendResult.user);
       
       // Log analytics event (optional)
       try {
@@ -108,7 +134,7 @@ export const AuthProvider = ({ children }) => {
         console.warn('Analytics error:', analyticsError);
       }
       
-      return { success: true, user: signedInUser };
+      return { success: true, user: signedInUser, backendUser: backendResult.user };
     } catch (error) {
       // Xử lý các Firebase errors
       let errorMessage = error.message;
@@ -145,6 +171,22 @@ export const AuthProvider = ({ children }) => {
       // Sign in với email và password
       const result = await signInWithEmailAndPassword(auth, email, password);
       const signedInUser = result.user;
+
+      // ✅ Đăng nhập với Backend bằng Firebase token
+      const firebaseToken = await signedInUser.getIdToken();
+      const backendResult = await loginWithBackend(firebaseToken);
+
+      if (!backendResult.success) {
+        // Backend authentication failed - Sign out from Firebase
+        await signOut(auth);
+        return {
+          success: false,
+          error: backendResult.error || 'Backend authentication failed'
+        };
+      }
+
+      // Lưu backend user data
+      setBackendUser(backendResult.user);
       
       // Log analytics event (optional)
       try {
@@ -158,7 +200,7 @@ export const AuthProvider = ({ children }) => {
         console.warn('Analytics error:', analyticsError);
       }
       
-      return { success: true, user: signedInUser };
+      return { success: true, user: signedInUser, backendUser: backendResult.user };
     } catch (error) {
       // Xử lý các Firebase errors
       let errorMessage = error.message;
@@ -185,7 +227,15 @@ export const AuthProvider = ({ children }) => {
    */
   const logout = async () => {
     try {
+      // Clear backend auth data
+      logoutFromBackend();
+      
+      // Sign out from Firebase
       await signOut(auth);
+      
+      // Clear local state
+      setBackendUser(null);
+      
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
@@ -194,7 +244,8 @@ export const AuthProvider = ({ children }) => {
 
   // Context value
   const value = {
-    user,                  // User object or null
+    user,                  // Firebase user object or null
+    backendUser,          // Backend user object or null
     loading,              // Loading state
     domainAuthorized,     // Domain verification flag
     signInWithGoogle,     // Sign in with Google function

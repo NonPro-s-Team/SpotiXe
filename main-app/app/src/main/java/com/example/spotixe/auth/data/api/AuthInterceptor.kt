@@ -7,9 +7,6 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 
-/**
- * OkHttp Interceptor that automatically attaches JWT token to all API requests
- */
 class AuthInterceptor(private val context: Context) : Interceptor {
     
     private val authDataStore = AuthDataStore(context)

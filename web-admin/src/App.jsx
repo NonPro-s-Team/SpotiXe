@@ -36,6 +36,7 @@ import EditAlbum from '@pages/albums/EditAlbum'
 import ViewAlbum from '@pages/albums/ViewAlbum'
 
 function App() {
+
   return (
     <AuthProvider>
       <Routes>
