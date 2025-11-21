@@ -302,21 +302,15 @@ class MainActivity : ComponentActivity() {
                                         navController!!.navigate("api_song_view/$songId")
                                     }
                                 },
-                                onSeek = { newProgress ->
-                                    playerVM!!.seekTo(newProgress)
-                                },
-                                onSeekStart = {
-                                    playerVM!!.pauseForSeeking()
-                                },
-                                onSeekEnd = {
-                                    playerVM!!.resumeAfterSeeking()
-                                },
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .padding(start = 16.dp, end = 16.dp, bottom = inner.calculateBottomPadding() + 8.dp)
+                                    .padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = inner.calculateBottomPadding() + 8.dp
+                                    )
                             )
                         }
-
                     }
                 }
             }
