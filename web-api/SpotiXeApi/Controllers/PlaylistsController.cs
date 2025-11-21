@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SpotiXeApi.Context;
@@ -7,6 +8,7 @@ using System.Linq;
 
 namespace SpotiXeApi.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/playlists")]
 public class PlaylistsController : ControllerBase

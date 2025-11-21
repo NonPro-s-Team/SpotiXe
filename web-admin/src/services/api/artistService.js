@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_CONFIG, ENDPOINTS } from "../../config/api";
+import { getToken } from "../../utils/tokenStorage";
 
 /**
  * Axios instance for Artist API
@@ -13,15 +14,15 @@ const artistApi = axios.create({
 });
 
 /**
- * Request interceptor - Add auth token if available
+ * Request interceptor - Add JWT Bearer token
  */
 artistApi.interceptors.request.use(
   (config) => {
-    // Get token from Firebase auth if needed
-    // const token = auth.currentUser?.accessToken;
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    // Get JWT token from localStorage
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {

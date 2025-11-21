@@ -1,10 +1,10 @@
 import axios from "axios";
-import { auth } from "./firebase";
 import toast from "react-hot-toast";
+import { getToken, clearAuthData } from "../utils/tokenStorage";
 
 // Base API configuration
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -13,13 +13,12 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add JWT token
 api.interceptors.request.use(
   async (config) => {
-    // Get Firebase ID token
-    const user = auth.currentUser;
-    if (user) {
-      const token = await user.getIdToken();
+    // Get JWT token from localStorage
+    const token = getToken();
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -34,7 +33,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Redirect to login on unauthorized
+      // Clear auth data and redirect to login on unauthorized
+      clearAuthData();
       window.location.href = "/login";
     }
 
