@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SpotiXeApi.Entities;
 
-public partial class UserFollowedPlaylist
+public partial class Userfollowedplaylist
 {
     public long UserId { get; set; }
 

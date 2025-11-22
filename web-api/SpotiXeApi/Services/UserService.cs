@@ -46,6 +46,29 @@ public class UserService
         }
     }
 
+    public async Task<User> FindOrCreateUserByEmailAsync(string email)
+    {
+        // Tìm user trong DB theo Email
+        var existingUser = await _userRepository.FindByEmailAsync(email);
+        if (existingUser != null)
+        {
+            return existingUser;
+        }
+
+        // Nếu chưa có → tạo mới
+        var newUser = new User
+        {
+            Email = email,
+            Username = email.Split('@')[0],
+            CreatedAt = DateTime.UtcNow,
+            IsActive = 1UL
+        };
+
+        await _userRepository.CreateAsync(newUser);
+        return newUser;
+    }
+
+
     /// <summary>
     /// Tạo user mới từ thông tin Firebase
     /// </summary>
@@ -58,7 +81,7 @@ public class UserService
             PhoneNumber = firebaseUserInfo.PhoneNumber,
             Username = GenerateUsername(firebaseUserInfo),
             AvatarUrl = firebaseUserInfo.PhotoUrl,
-            IsActive = true,
+            IsActive = 1UL,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             CreatedByName = "System",

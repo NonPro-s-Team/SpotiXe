@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpotiXeApi.DTOs;
+using SpotiXeApi.Entities;
 using SpotiXeApi.Services;
 
 namespace SpotiXeApi.Controllers;
@@ -16,17 +17,24 @@ public class AuthController : ControllerBase
     private readonly JwtService _jwtService;
     private readonly UserService _userService;
     private readonly ILogger<AuthController> _logger;
+    private readonly EmailOtpService _emailOtpService;
+    private readonly EmailSenderService _emailService;
 
     public AuthController(
         FirebaseService firebaseService,
         JwtService jwtService,
         UserService userService,
-        ILogger<AuthController> logger)
+        ILogger<AuthController> logger,
+        EmailOtpService emailOtpService,
+        EmailSenderService emailService
+    )
     {
         _firebaseService = firebaseService;
         _jwtService = jwtService;
         _userService = userService;
         _logger = logger;
+        _emailOtpService = emailOtpService;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -100,7 +108,7 @@ public class AuthController : ControllerBase
             var user = await _userService.FindOrCreateUserAsync(firebaseUserInfo);
 
             // Kiểm tra user có active không
-            if (!user.IsActive)
+            if (user.IsActive == 0UL)
             {
                 _logger.LogWarning($"Inactive user attempted login: {user.UserId}");
                 return Unauthorized(new ErrorResponseDto
@@ -172,4 +180,53 @@ public class AuthController : ControllerBase
             role = role
         });
     }
+
+
+    [HttpPost("request-otp")]
+    public async Task<IActionResult> RequestOtp([FromBody] RequestOtpDto dto)
+    {
+        var otp = new Random().Next(100000, 999999).ToString();
+        var expires = DateTime.UtcNow.AddMinutes(5);
+
+        // Lưu OTP vào DB
+        await _emailOtpService.SaveOtpAsync(dto.Email, otp, expires);
+
+        // Gửi email
+        await _emailService.SendAsync(
+            dto.Email,
+            "Your SpotiXe OTP Code",
+            $"Your OTP is: {otp}"
+        );
+
+        return Ok(new { message = "OTP sent" });
+    }
+
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
+    {
+        var otpRecord = await _emailOtpService.GetOtpAsync(dto.Email);
+
+        if (otpRecord == null)
+            return BadRequest("OTP not found.");
+
+        if (otpRecord.ExpiresAt < DateTime.UtcNow)
+            return BadRequest("OTP expired.");
+
+        if (otpRecord.Otp != dto.Otp)
+            return BadRequest("Invalid OTP.");
+
+        // Xác thực thành công → tạo hoặc lấy user
+        var user = await _userService.FindOrCreateUserByEmailAsync(dto.Email);
+
+        // Xoá OTP sau khi dùng
+        await _emailOtpService.DeleteOtpAsync(otpRecord.Id);
+
+        // Tạo JWT
+        var token = _jwtService.GenerateToken(user.UserId, user.Email, user.Username);
+
+        return Ok(new { token });
+    }
+
+
+
 }

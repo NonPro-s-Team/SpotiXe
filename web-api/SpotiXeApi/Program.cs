@@ -84,13 +84,19 @@ builder.Services.AddAuthorization();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<SpotiXeDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(
+        connectionString, 
+        ServerVersion.AutoDetect(connectionString)
+    )
+);
 
 // Register Services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<FirebaseService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<EmailOtpService>();  
+builder.Services.AddScoped<EmailSenderService>();
 
 var app = builder.Build();
 

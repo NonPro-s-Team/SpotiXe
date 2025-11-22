@@ -43,5 +43,5 @@ public partial class Song
 
     public virtual Artist Artist { get; set; } = null!;
 
-    public virtual ICollection<PlaylistSong> PlaylistSongs { get; set; } = new List<PlaylistSong>();
+    public virtual ICollection<Playlistsong> Playlistsongs { get; set; } = new List<Playlistsong>();
 }

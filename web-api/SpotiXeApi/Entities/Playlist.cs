@@ -35,7 +35,7 @@ public partial class Playlist
 
     public virtual User OwnerUser { get; set; } = null!;
 
-    public virtual ICollection<PlaylistSong> PlaylistSongs { get; set; } = new List<PlaylistSong>();
+    public virtual ICollection<Playlistsong> Playlistsongs { get; set; } = new List<Playlistsong>();
 
-    public virtual ICollection<UserFollowedPlaylist> UserFollowedPlaylists { get; set; } = new List<UserFollowedPlaylist>();
+    public virtual ICollection<Userfollowedplaylist> Userfollowedplaylists { get; set; } = new List<Userfollowedplaylist>();
 }
