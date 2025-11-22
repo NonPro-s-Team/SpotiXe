@@ -2,6 +2,7 @@ package com.example.spotixe
 
 import Components.Bar.MiniPlayerBar
 import Components.Bar.BottomBar
+import Components.DialogTestScreen
 import Components.SetSystemBars
 import android.os.Build
 import android.os.Bundle
@@ -45,6 +46,7 @@ import com.example.spotixe.player.PlayerViewModel
 import com.example.spotixe.player.MusicPlayerService
 import com.example.spotixe.ui.theme.SpotiXeTheme
 import androidx.lifecycle.ViewModelProvider
+import com.example.spotixe.MainRoute.DialogTestScreen
 import com.example.spotixe.auth.viewmodel.AuthViewModel
 import kotlinx.coroutines.flow.firstOrNull
 
@@ -123,8 +125,8 @@ class MainActivity : ComponentActivity() {
                         // ----- NAV HOST -----
                         // Determine start destination based on login status
                         val isLoggedIn by authVM.isLoggedIn.collectAsState()
-                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
-//                        val startDest = Graph.AUTH
+//                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
+                        val startDest = Graph.MAIN  // TEMP: BỎ QUA START/ AUTH ĐỂ DỄ TEST
 
                         NavHost(
                             navController = navController!!,
@@ -158,7 +160,7 @@ class MainActivity : ComponentActivity() {
 
                             // MAIN GRAPH
                             navigation(
-                                startDestination = MainRoute.Home,
+                                startDestination = MainRoute.DialogTestScreen,
                                 route = Graph.MAIN
                             ) {
                                 composable(MainRoute.Home) { HomeScreen(navController!!) }
@@ -172,6 +174,7 @@ class MainActivity : ComponentActivity() {
                                         onRetry = { /* TODO: implement retry logic */ }
                                     )
                                 }
+                                composable(MainRoute.DialogTestScreen) { DialogTestScreen(navController!!) }
 
                                 // SongView (old - local data)
                                 composable(

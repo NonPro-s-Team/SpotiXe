@@ -48,5 +48,7 @@ object MainRoute {
 
     const val ErrorScreen="error_screen"
 
+    const val DialogTestScreen = "test_screen"
+
 }
 
