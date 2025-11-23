@@ -145,14 +145,17 @@ fun QueueScreen(
                 Spacer(Modifier.height(8.dp))
 
                 ScrubbableProgressBar(
-                    progress    = progress,
-                    onSeek      = { p -> playerVM.seekTo(p) },
-                    onSeekStart = { /* Not needed anymore */ },
-                    onSeekEnd   = { /* Not needed anymore */ },
-                    height      = 8.dp,
-                    modifier    = Modifier
+                    progress = progress,          // lấy trực tiếp từ PlayerViewModel
+                    height = 6.dp,
+                    activeColor = Color(0xFF1DB954),
+                    inactiveColor = Color.Gray.copy(alpha = 0.5f),
+                    onSeekEnd = { p ->
+                        // Seek 1 lần khi thả tay
+                        playerVM.seekTo(p)
+                    },
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .zIndex(1f)
+                        .padding(vertical = 8.dp)
                 )
 
                 Row(Modifier.fillMaxWidth()) {

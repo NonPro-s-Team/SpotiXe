@@ -295,8 +295,16 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     fun seekTo(percent: Float) {
         val targetPosition = (percent * (_duration.value)).toLong()
         mediaController?.seekTo(targetPosition)
+
+        // Cập nhật luôn state để UI phản ứng ngay cả khi đang pause
+        _currentPosition.value = targetPosition
+        val duration = _duration.value
+        if (duration > 0) {
+            _progress.value = targetPosition.toFloat() / duration
+        }
     }
-    
+
+
     /**
      * Seek to specific position in milliseconds
      */

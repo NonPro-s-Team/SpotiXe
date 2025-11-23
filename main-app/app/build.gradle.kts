@@ -69,7 +69,7 @@ dependencies {
     
     implementation ("com.google.dagger:hilt-android:2.57.1")
     implementation(libs.androidx.compose.foundation.layout)
-    implementation(libs.androidx.compose.ui.text) // Use the latest version
+    implementation(libs.androidx.compose.ui.text)
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.38")
@@ -105,4 +105,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     implementation("com.google.accompanist:accompanist-navigation-animation:0.32.0")
+
+    //firebase messaging
+    implementation ("com.google.firebase:firebase-messaging")
 }
