@@ -6,6 +6,10 @@ import com.example.spotixe.auth.data.AuthDataStore
 import com.example.spotixe.auth.data.api.AuthApiService
 import com.example.spotixe.auth.data.api.RetrofitClient
 import com.example.spotixe.auth.data.models.LoginResponse
+import com.example.spotixe.auth.data.models.RequestOtpRequest
+import com.example.spotixe.auth.data.models.RequestOtpRespone
+import com.example.spotixe.auth.data.models.VerifyOtpRequest
+import com.example.spotixe.auth.data.models.VerifyOtpRespone
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -200,7 +204,59 @@ class AuthRepository(private val context: Context) {
             Result.failure(e)
         }
     }
-    
+
+    /**
+     * Request an OTP to be sent to the provided email address
+     *
+     * @param email user's email to receive OTP
+     * @return Result containing RequestOtpResponse or error
+     */
+    suspend fun requestOtp(email: String): Result<RequestOtpRespone> {
+        return try {
+            val response = authApiService.requestOtp(RequestOtpRequest(email))
+
+            if (response.isSuccessful && response.body() != null) {
+                val otpResponse = response.body()!!
+                Log.d(TAG, "OTP request successful for email: $email")
+                Result.success(otpResponse)
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e(TAG, "OTP request failed: ${response.code()} - $errorBody")
+                Result.failure(Exception("OTP request failed: ${response.code()}"))
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error requesting OTP", e)
+            Result.failure(e)
+        }
+    }
+
+
+    /**
+     * Send an OTP & Email to verify the otp valid or no
+     * @param email user's email to verify otp
+     * @param otp the one-time password to verify
+     * @return Result containing VerifyOtpRespone or error
+     */
+    suspend fun verifyOtp(email: String, otp: String): Result<VerifyOtpRespone> {
+        return try{
+            val respone = authApiService.verifyOtp(VerifyOtpRequest(email, otp))
+
+            if(respone.isSuccessful && respone.body() != null){
+                val verifyOtpRespone = respone.body()!!
+                Log.d(TAG, "Verify OTP successful for email: $email")
+                Result.success(verifyOtpRespone)
+            } else {
+                val errorBody = respone.errorBody()?.string()
+                Log.e(TAG, "Verify OTP failed: ${respone.code()} - $errorBody")
+                Result.failure(Exception("Verify OTP failed: ${respone.code()}"))
+            }
+        }catch (e: Exception) {
+            Log.e(TAG, "Error verifying OTP", e)
+            Result.failure(e)
+        }
+    }
+
     /**
      * Get JWT token from DataStore
      */
