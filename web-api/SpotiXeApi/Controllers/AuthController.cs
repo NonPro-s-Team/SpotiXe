@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SpotiXeApi.DTOs;
 using SpotiXeApi.Entities;
 using SpotiXeApi.Services;
+using SpotiXeApi.Utils;
 
 namespace SpotiXeApi.Controllers;
 
@@ -185,47 +186,102 @@ public class AuthController : ControllerBase
     [HttpPost("request-otp")]
     public async Task<IActionResult> RequestOtp([FromBody] RequestOtpDto dto)
     {
-        var otp = new Random().Next(100000, 999999).ToString();
+        // Validate email format
+        if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))
+            return BadRequest("Invalid email address.");
+
+        // Kiểm tra spam OTP (30 giây)
+        var lastOtp = await _emailOtpService.GetOtpAsync(dto.Email);
+        if (lastOtp != null && (DateTime.UtcNow - lastOtp.CreatedAt).TotalSeconds < 30)
+            return BadRequest("Please wait 30 seconds before requesting another OTP.");
+
+        // Xóa OTP cũ nếu có
+        await _emailOtpService.DeleteOtpByEmailAsync(dto.Email);
+
+        // Sinh OTP an toàn bằng Crypto RNG
+        var otp = OtpGenerator.GenerateOtp(6);
+
+        // Thời gian hết hạn
         var expires = DateTime.UtcNow.AddMinutes(5);
 
-        // Lưu OTP vào DB
+        // Lưu OTP
         await _emailOtpService.SaveOtpAsync(dto.Email, otp, expires);
 
-        // Gửi email
-        await _emailService.SendAsync(
-            dto.Email,
-            "Your SpotiXe OTP Code",
-            $"Your OTP is: {otp}"
-        );
+        // Nội dung email
+        string subject = "Your SpotiXe OTP Code";
+        string message = $"Your OTP is: {otp}\nThis code will expire in 5 minutes.";
 
-        return Ok(new { message = "OTP sent" });
+        // Gửi email
+        await _emailService.SendAsync(dto.Email, subject, message);
+
+        return Ok(new { message = "OTP sent successfully." });
     }
 
     [HttpPost("verify-otp")]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
     {
-        var otpRecord = await _emailOtpService.GetOtpAsync(dto.Email);
+        try
+        {
+            // Validate DTO
+            if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))
+                return BadRequest("Invalid email.");
 
-        if (otpRecord == null)
-            return BadRequest("OTP not found.");
+            if (string.IsNullOrWhiteSpace(dto.Otp) || dto.Otp.Length < 4)
+                return BadRequest("Invalid OTP format.");
 
-        if (otpRecord.ExpiresAt < DateTime.UtcNow)
-            return BadRequest("OTP expired.");
+            // Lấy OTP từ DB
+            var otpRecord = await _emailOtpService.GetOtpAsync(dto.Email);
 
-        if (otpRecord.Otp != dto.Otp)
-            return BadRequest("Invalid OTP.");
+            if (otpRecord == null)
+                return BadRequest("OTP not found. Please request a new OTP.");
 
-        // Xác thực thành công → tạo hoặc lấy user
-        var user = await _userService.FindOrCreateUserByEmailAsync(dto.Email);
+            // Kiểm tra OTP hết hạn
+            if (otpRecord.ExpiresAt < DateTime.UtcNow)
+            {
+                await _emailOtpService.DeleteOtpByEmailAsync(dto.Email);
+                return BadRequest("OTP expired. Please request a new OTP.");
+            }
 
-        // Xoá OTP sau khi dùng
-        await _emailOtpService.DeleteOtpAsync(otpRecord.Id);
+            // Kiểm tra mã OTP khớp
+            if (otpRecord.Otp != dto.Otp)
+                return BadRequest("Invalid OTP.");
 
-        // Tạo JWT
-        var token = _jwtService.GenerateToken(user.UserId, user.Email, user.Username);
+            // Lấy hoặc tạo user theo Email
+            var user = await _userService.FindOrCreateUserByEmailAsync(dto.Email);
 
-        return Ok(new { token });
+            if (user == null)
+                return StatusCode(500, "Failed to create user.");
+
+            // Xoá OTP sau khi dùng (chống replay)
+            await _emailOtpService.DeleteOtpByEmailAsync(dto.Email);
+
+            // Tạo JWT (UserId + Email + Username)
+            var token = _jwtService.GenerateToken(
+                user.UserId,
+                user.Email,
+                user.Username
+            );
+
+            return Ok(new
+            {
+                success = true,
+                token,
+                user = new
+                {
+                    user.UserId,
+                    user.Email,
+                    user.Username
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            // Bạn có logger thì thêm:
+            // _logger.LogError(ex, "Verify OTP failed");
+            return StatusCode(500, "Internal server error: " + ex.Message);
+        }
     }
+
 
 
 
