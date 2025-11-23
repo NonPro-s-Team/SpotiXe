@@ -139,7 +139,7 @@ fun Sign_UpPhone2Screen(navController: NavController) {
                 otp = otpValue,
                 count = 6,
                 mask = true,
-                boxSize = otpBoxSize,      // responsive box size
+                boxSize = otpBoxSize,
                 textSize = labelFontSize.sp,
                 onFilled = { code ->
                     if (code.length == 6) {

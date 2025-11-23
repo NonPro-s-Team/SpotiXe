@@ -15,13 +15,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.graphics.Color
 
-/**
- * Dialog chuẩn SpotiXe:
- * - Responsive: tự co width theo màn hình
- * - Đồng bộ tone màu với theme (dùng colorScheme)
- * - Hỗ trợ 1 hoặc 2 nút (Confirm / Cancel)
- */
-
 @Composable
 fun SpotixeDialog(
     visible: Boolean,
@@ -164,3 +157,28 @@ fun SpotixeDialog(
         }
     }
 }
+
+
+
+@Composable
+fun BanDialog(
+    visible: Boolean,
+    onConfirm: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SpotixeDialog(
+        visible = visible,
+        title = "Tài khoản bị ban",
+        message = "Tài khoản của bạn đã vi phạm các điều khoản dịch vụ và đã bị khóa. " +
+                "Vui lòng liên hệ bộ phận hỗ trợ của SpotiXe để biết thêm chi tiết.",
+        primaryButtonText = "Đăng xuất",
+        onPrimaryClick = onConfirm,
+        onDismissRequest = {},
+        secondaryButtonText = null,
+        onSecondaryClick = null,
+        dismissOnBackPress = false,
+        dismissOnClickOutside = false,
+        modifier = modifier
+    )
+}
+

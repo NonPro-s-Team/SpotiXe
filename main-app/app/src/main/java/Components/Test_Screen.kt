@@ -1,5 +1,7 @@
 package Components
 
+import Components.Layout.BanDialog
+import Components.Layout.OtpInputField
 import Components.Layout.SpotixeDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
@@ -7,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +30,7 @@ fun DialogTestScreen(navController: NavHostController) {
     val scope = rememberCoroutineScope()
     val authDataStore = AuthDataStore(context)
     val userData by authDataStore.getUserData().collectAsState(initial = null)
+    val otpValue = rememberSaveable { mutableStateOf("") }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -67,6 +71,18 @@ fun DialogTestScreen(navController: NavHostController) {
                 ) {
                     Text("Mày bị ban")
                 }
+
+                Spacer(Modifier.height(10.dp))
+
+                OtpInputField(
+                    otp = otpValue,
+                    count = 6,
+                    mask = true,
+                    onFilled = { code ->
+                        // Xử lý khi mã OTP được nhập đầy đủ
+                        println("Mã OTP đã nhập: $code")
+                    }
+                )
             }
 
             // Dialog 2 nút
@@ -117,13 +133,10 @@ fun DialogTestScreen(navController: NavHostController) {
                     }
                 },
                 onDismissRequest = {
-                    // Có thể để trống hoặc không tắt dialog ở đây nữa
-                    // showBanDialog = false  // <- bỏ dòng này nếu muốn không tắt bằng dismiss
                 },
                 dismissOnBackPress = false,
                 dismissOnClickOutside = false
             )
-
         }
     }
 }
