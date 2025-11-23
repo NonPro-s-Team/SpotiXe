@@ -42,4 +42,18 @@ public class EmailOtpService
             await _db.SaveChangesAsync();
         }
     }
+
+    public async Task DeleteOtpByEmailAsync(string email)
+    {
+        var list = await _db.EmailOtps
+            .Where(x => x.Email == email)
+            .ToListAsync();
+
+        if (list.Any())
+        {
+            _db.EmailOtps.RemoveRange(list);
+            await _db.SaveChangesAsync();
+        }
+    }
+
 }
