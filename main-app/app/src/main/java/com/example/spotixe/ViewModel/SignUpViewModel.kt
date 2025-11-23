@@ -43,6 +43,14 @@ object SignUpViewModel {
         return name
     }
 
+    fun saveEmail(email: String) {
+        this.email = email
+        sharedPref?.edit()?.apply {
+            putString("email", email)
+            apply()
+        }
+    }
+
     fun clearData() {
         email = ""
         name = ""
@@ -53,4 +61,3 @@ object SignUpViewModel {
         }
     }
 }
-
