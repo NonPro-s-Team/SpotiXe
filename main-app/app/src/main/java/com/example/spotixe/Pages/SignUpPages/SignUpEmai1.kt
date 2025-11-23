@@ -2,6 +2,7 @@ package com.example.spotixe.Pages.Pages.SignUpPages
 
 import Components.Buttons.BackButton
 import Components.Buttons.GoogleSignInButtonFirebase
+import android.app.Application
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -26,8 +27,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -36,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import com.example.spotixe.auth.data.api.AuthApiService
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -45,12 +49,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.spotixe.AuthRoute
 import com.example.spotixe.MainRoute
 import com.example.spotixe.Graph.AUTH
 import com.example.spotixe.R
+import com.example.spotixe.auth.data.api.RetrofitClient
+import com.example.spotixe.auth.data.models.RequestOtpRequest
+import com.example.spotixe.auth.data.repository.AuthRepository
+import com.example.spotixe.auth.data.repository.AuthViewModelFactory
+import com.example.spotixe.auth.viewmodel.AuthViewModel
 import com.example.spotixe.viewmodel.SignUpViewModel
+import com.google.android.gms.auth.api.Auth
 
 @Composable
 fun Sign_UpEmail1Screen(
@@ -66,6 +77,14 @@ fun Sign_UpEmail1Screen(
 
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
+
+    // Request otp
+    val authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(context.applicationContext as Application)
+    )
+
+    val otpState by authViewModel.otpState.collectAsState()
+
 
     BoxWithConstraints(
         modifier = Modifier
@@ -122,7 +141,7 @@ fun Sign_UpEmail1Screen(
 
             Spacer(modifier = Modifier.height(bigSpacer / 1.3f))
 
-            // NAME label
+            // -------------------- NAME --------------------
             Text(
                 text = "Name",
                 color = green,
@@ -132,7 +151,12 @@ fun Sign_UpEmail1Screen(
 
             Spacer(modifier = Modifier.height(normalSpacer / 1.2f))
 
-            // NAME input
+// Validate Name
+            val isNameValid = name.length >= 3 &&
+                    name.length <= 40 &&
+                    name.any { it.isLetter() } &&
+                    name.all { it.isLetter() || it.isWhitespace() }
+
             TextField(
                 value = name,
                 onValueChange = { name = it },
@@ -144,16 +168,27 @@ fun Sign_UpEmail1Screen(
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedTextColor = green,
                     unfocusedTextColor = green,
-                    cursorColor = green,
+                    cursorColor = green
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp)),
+                placeholder = { Text("Enter your name", color = Color.LightGray) }
             )
 
-            Spacer(modifier = Modifier.height(normalSpacer))
+            if (name.isNotEmpty() && !isNameValid) {
+                Text(
+                    text = "Name must be 3–40 characters and contain only letters.",
+                    color = Color.Red,
+                    fontSize = (inputFontSize * 0.75).sp,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
 
-            // EMAIL label
+            Spacer(modifier = Modifier.height(normalSpacer * 1.5f))
+
+
+// -------------------- EMAIL --------------------
             Text(
                 text = "Email",
                 color = green,
@@ -163,10 +198,12 @@ fun Sign_UpEmail1Screen(
 
             Spacer(modifier = Modifier.height(normalSpacer / 1.2f))
 
-            // EMAIL input
+            val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+            val isEmailValid = emailRegex.matches(email)
+
             TextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { email = it.trim() },
                 textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFF444444),
@@ -175,14 +212,26 @@ fun Sign_UpEmail1Screen(
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedTextColor = green,
                     unfocusedTextColor = green,
-                    cursorColor = green,
+                    cursorColor = green
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp)),
+                placeholder = { Text("Enter your email", color = Color.LightGray) },
+                singleLine = true
             )
 
+            if (email.isNotEmpty() && !isEmailValid) {
+                Text(
+                    text = "Please enter a valid email address.",
+                    color = Color.Red,
+                    fontSize = (inputFontSize * 0.75).sp,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+            }
+
             Spacer(modifier = Modifier.height(bigSpacer / 2f))
+
 
             // SIGN UP BUTTON
             Button(
@@ -198,8 +247,11 @@ fun Sign_UpEmail1Screen(
                             Toast.makeText(context, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
                         }
                         else -> {
-                            // Save email and name to SignUpViewModel singleton
                             SignUpViewModel.setData(email, name)
+                            // Request OTP
+                            authViewModel.requestOtp(email)
+
+                            // Navigate to OTP verification screen
                             navController.navigate(AuthRoute.SignUpEmail2) {
                                 launchSingleTop = true
                             }
@@ -219,6 +271,8 @@ fun Sign_UpEmail1Screen(
                     fontSize = (labelFontSize * 1.1f).sp
                 )
             }
+
+
 
             Spacer(modifier = Modifier.height(bigSpacer))
 
