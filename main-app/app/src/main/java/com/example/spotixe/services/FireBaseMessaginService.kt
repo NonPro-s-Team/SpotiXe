@@ -3,15 +3,21 @@ package com.example.spotixe.services
 import Components.HomePage
 import android.R
 import android.annotation.SuppressLint
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Icon
+import android.media.RingtoneManager
 import android.os.Build
 import android.util.Log
+import androidx.compose.ui.graphics.Color
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import com.example.spotixe.MainActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import java.net.URL
@@ -23,7 +29,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d("FCM_TOKEN", "New token: $token")
-        // chỗ này em có thể gửi token lên server luôn nếu muốn
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -62,14 +67,17 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private fun showNotification(
         title: String,
         message: String,
-        imageUrl: String? // <-- cho phép null
+        imageUrl: String?
     ) {
         val context = applicationContext
 
-        val intent = Intent(context, HomePage::class.java).apply {
+        val intent = Intent(context, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            putExtra("screen", title)
+            action = "ACTION_FCM_OPEN_NOTIFICATION"
+            putExtra("screen", "NotificationScreen")
             putExtra("messageId", message)
+            putExtra("title", title)
+            putExtra("body", message)
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -82,39 +90,52 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Tạo channel cho Android 8+
+        val channelId = "spotixe_general"
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "default_channel",
-                "Default Channel",
+                channelId,
+                "Thông báo chung",
                 NotificationManager.IMPORTANCE_HIGH
-            )
+            ).apply {
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 300, 200, 300)
+                setSound(
+                    RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
+                    Notification.AUDIO_ATTRIBUTES_DEFAULT
+                )
+            }
             notificationManager.createNotificationChannel(channel)
         }
 
-        val builder = NotificationCompat.Builder(context, "default_channel")
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(com.example.spotixe.R.drawable.spotixe_logo)
             .setContentTitle(title)
             .setContentText(message)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setColor(0xFF58BA47.toInt())
+            .setVibrate(longArrayOf(0, 300, 200, 300))
             .setContentIntent(pendingIntent)
 
-        // Nếu có imageUrl thì mới cố load ảnh
+        // BigTextStyle
+        builder.setStyle(
+            NotificationCompat.BigTextStyle().bigText(message)
+        )
+
+        // Nếu có ảnh thì chuyển sang BigPictureStyle
+
         if (!imageUrl.isNullOrBlank()) {
-            try {
-                val bitmap = BitmapFactory.decodeStream(URL(imageUrl).openStream())
-                builder.setStyle(
-                    NotificationCompat.BigPictureStyle().bigPicture(bitmap)
-                )
-            } catch (e: Exception) {
-                Log.e("FCM", "Error loading image: ${e.message}", e)
-            }
+            val bitmap = BitmapFactory.decodeStream(URL(imageUrl).openStream())
+            builder.setStyle(
+                NotificationCompat.BigPictureStyle()
+                    .bigPicture(bitmap)
+                    .bigLargeIcon(null as Icon?)
+
+            )
         }
 
-        notificationManager.notify(
-            System.currentTimeMillis().toInt(),
-            builder.build()
-        )
+        notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
     }
+
 }
