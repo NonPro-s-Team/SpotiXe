@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.example.spotixe.Data.AlbumRepository
 import com.example.spotixe.Data.ArtistRepository
@@ -97,7 +98,15 @@ fun HomeScreen(navController: NavHostController) {
                             modifier = Modifier
                                 .padding(start = 8.dp)
                                 .size(40.dp)
-                                .clickable { navController.navigate(MainRoute.User) },
+                                .clickable {
+                                    navController.navigate(MainRoute.User) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
