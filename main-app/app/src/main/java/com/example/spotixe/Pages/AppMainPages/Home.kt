@@ -243,7 +243,9 @@ fun HomeScreen(navController: NavHostController) {
                         Text(
                             text = "See All",
                             color = Color(0xFF1DB954),
-                            modifier = Modifier.clickable { /* navController.navigate("recently_all") */ }
+                            modifier = Modifier.clickable {
+                                navController.navigate(MainRoute.seeAll(SeeAllType.RecentlyPlayed.value))
+                            }
                         )
                     }
 
@@ -290,7 +292,9 @@ fun HomeScreen(navController: NavHostController) {
                         Text(
                             text = "See All",
                             color = Color(0xFF1DB954),
-                            modifier = Modifier.clickable { /* navController.navigate("playlist_all") */ }
+                            modifier = Modifier.clickable {
+                                navController.navigate(MainRoute.seeAll(SeeAllType.Playlists.value,))
+                            }
                         )
                     }
 
@@ -335,7 +339,9 @@ fun HomeScreen(navController: NavHostController) {
                         Text(
                             text = "See All",
                             color = Color(0xFF1DB954),
-                            modifier = Modifier.clickable { /* navController.navigate("albums_all") */ }
+                            modifier = Modifier.clickable {
+                                navController.navigate(MainRoute.seeAll(SeeAllType.Albums.value))
+                            }
                         )
                     }
 
@@ -380,7 +386,9 @@ fun HomeScreen(navController: NavHostController) {
                         Text(
                             text = "See All",
                             color = Color(0xFF1DB954),
-                            modifier = Modifier.clickable { /* navController.navigate("artists_all") */ }
+                            modifier = Modifier.clickable {
+                                navController.navigate(MainRoute.seeAll(SeeAllType.Artists.value))
+                            }
                         )
                     }
 

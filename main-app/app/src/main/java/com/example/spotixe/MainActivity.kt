@@ -110,7 +110,8 @@ class MainActivity : ComponentActivity() {
                 val hideBottomOnRoutes = setOf(
                     MainRoute.SongView,
                     MainRoute.SongViewMore,
-                    MainRoute.UserDetail
+                    MainRoute.UserDetail,
+                    MainRoute.SeeAll
                 )
 
                 // Check if current route matches api_song_view pattern
@@ -292,6 +293,22 @@ class MainActivity : ComponentActivity() {
                                     } else {
                                         Text("Album not found", color = Color.White)
                                     }
+                                }
+
+                                // See All Screen
+                                composable(
+                                    route = MainRoute.SeeAll,
+                                    arguments = listOf(navArgument("type") { type = NavType.StringType })
+                                ) { backStackEntry ->
+                                    val typeArg = backStackEntry.arguments?.getString("type") ?: "recently_played"
+                                    val seeAllType = SeeAllType.from(typeArg)
+                                    val title = SeeAllType.toTitle(seeAllType)
+
+                                    SeeAllScreen(
+                                        navController = navController!!,
+                                        type = seeAllType,
+                                        title = title
+                                    )
                                 }
 
                                 // Artist detail

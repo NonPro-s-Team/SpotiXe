@@ -47,6 +47,10 @@ object MainRoute {
     const val ArtistDetail = "main/artist/{artistId}"
     fun artistDetail(id: String) = "main/artist/$id"
 
+    // See All Screen (có type)
+    const val SeeAll = "main/see_all/{type}"
+    fun seeAll(type: String) = "main/see_all/$type"
+
     const val ErrorScreen="error_screen"
 
     const val NotificationPermissionScreen = "test_screen"
