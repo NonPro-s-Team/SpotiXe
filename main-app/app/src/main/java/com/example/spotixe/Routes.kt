@@ -49,4 +49,6 @@ object MainRoute {
 
     const val ErrorScreen="error_screen"
 
+    const val NotificationPermissionScreen = "test_screen"
+
 }

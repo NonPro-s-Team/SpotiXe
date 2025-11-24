@@ -2,9 +2,12 @@ package com.example.spotixe
 
 import Components.Bar.MiniPlayerBar
 import Components.Bar.BottomBar
+import Components.NotificationPermissionScreen
 import Components.SetSystemBars
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -47,6 +50,7 @@ import com.example.spotixe.player.MusicPlayerService
 import com.example.spotixe.ui.theme.SpotiXeTheme
 import androidx.lifecycle.ViewModelProvider
 import com.example.spotixe.auth.viewmodel.AuthViewModel
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.firstOrNull
 
 class MainActivity : ComponentActivity() {
@@ -59,6 +63,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+//        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+//            if (!task.isSuccessful) {
+//                Log.w("FCM_TOKEN", "Fetching FCM registration token failed", task.exception)
+//                return@addOnCompleteListener
+//            }
+//
+//            val token = task.result
+//            Log.d("FCM_TOKEN", "Token: $token")
+//
+//            // Nếu muốn thì show toast:
+//             Toast.makeText(this, "Token: $token", Toast.LENGTH_SHORT).show()
+//        }
+
 
         setContent {
             navController = rememberNavController()
@@ -124,8 +142,8 @@ class MainActivity : ComponentActivity() {
                         // ----- NAV HOST -----
                         // Determine start destination based on login status
                         val isLoggedIn by authVM.isLoggedIn.collectAsState()
-                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
-//                        val startDest = Graph.AUTH
+//                        val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
+                        val startDest = Graph.MAIN  // TEMP: BỎ QUA START/ AUTH ĐỂ DỄ TEST
 
                         NavHost(
                             navController = navController!!,
@@ -160,7 +178,7 @@ class MainActivity : ComponentActivity() {
 
                             // MAIN GRAPH
                             navigation(
-                                startDestination = MainRoute.Home,
+                                startDestination = MainRoute.NotificationPermissionScreen,
                                 route = Graph.MAIN
                             ) {
                                 composable(MainRoute.Home) { HomeScreen(navController!!) }
@@ -174,6 +192,13 @@ class MainActivity : ComponentActivity() {
                                         onRetry = { /* TODO: implement retry logic */ }
                                     )
                                 }
+                                composable(MainRoute.NotificationPermissionScreen) {
+                                    NotificationPermissionScreen(
+                                        screen = "DialogTestScreen",
+                                        messageId = "LocalTest"
+                                    )
+                                }
+
 
                                 // SongView (old - local data)
                                 composable(
@@ -304,21 +329,15 @@ class MainActivity : ComponentActivity() {
                                         navController!!.navigate("api_song_view/$songId")
                                     }
                                 },
-                                onSeek = { newProgress ->
-                                    playerVM!!.seekTo(newProgress)
-                                },
-                                onSeekStart = {
-                                    playerVM!!.pauseForSeeking()
-                                },
-                                onSeekEnd = {
-                                    playerVM!!.resumeAfterSeeking()
-                                },
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .padding(start = 16.dp, end = 16.dp, bottom = inner.calculateBottomPadding() + 8.dp)
+                                    .padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = inner.calculateBottomPadding() + 8.dp
+                                    )
                             )
                         }
-
                     }
                 }
             }

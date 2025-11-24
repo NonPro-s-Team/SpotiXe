@@ -31,23 +31,21 @@ import com.example.spotixe.Data.model.Song
 fun MiniPlayerBar(
     playerViewModel: PlayerViewModel,
     onOpenSongView: () -> Unit,
-    onSeek: (Float) -> Unit,
-    onSeekStart: () -> Unit,
-    onSeekEnd: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Collect state from the ViewModel using delegated properties with explicit initial values
     val currentSong by playerViewModel.currentSong.collectAsState(initial = null as Song?)
     val isPlaying by playerViewModel.isPlaying.collectAsState(initial = false)
     val progress by playerViewModel.progress.collectAsState(initial = 0f)
 
-    // Only show if there's a song playing
     val song = currentSong ?: return
 
     Column(
         modifier
             .fillMaxWidth()
-            .background(Color(0xFF1E1E1E), shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+            .background(
+                Color(0xFF1E1E1E),
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+            )
     ) {
         Row(
             modifier = Modifier
@@ -57,7 +55,6 @@ fun MiniPlayerBar(
                 .clickable { onOpenSongView() },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Cover image from API
             AsyncImage(
                 model = song.coverImageUrl,
                 contentDescription = song.title,
@@ -66,10 +63,9 @@ fun MiniPlayerBar(
                     .clip(RoundedCornerShape(6.dp)),
                 contentScale = ContentScale.Crop
             )
-            
+
             Spacer(Modifier.width(10.dp))
 
-            // Song info
             Column(Modifier.weight(1f)) {
                 Text(
                     text = song.title,
@@ -87,8 +83,7 @@ fun MiniPlayerBar(
                     fontWeight = FontWeight.SemiBold
                 )
             }
-            
-            // Play/Pause button
+
             IconButton(onClick = { playerViewModel.togglePlayPause() }) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -100,13 +95,17 @@ fun MiniPlayerBar(
 
         ScrubbableProgressBar(
             progress = progress,
-            onSeek = onSeek,
-            onSeekStart = onSeekStart,
-            onSeekEnd = onSeekEnd,
-            height = 8.dp,
+            height = 4.dp,
+            activeColor = Color(0xFF1DB954),
+            inactiveColor = Color.White.copy(alpha = 0.4f),
+            onSeekEnd = { p ->
+                // Chỉ seek đúng 1 lần khi thả tay
+                playerViewModel.seekTo(p)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .zIndex(1f)
         )
     }
 }
+
