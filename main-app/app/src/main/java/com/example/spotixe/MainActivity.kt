@@ -143,7 +143,7 @@ class MainActivity : ComponentActivity() {
                         // Determine start destination based on login status
                         val isLoggedIn by authVM.isLoggedIn.collectAsState()
                         val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
-//                        val startDest = Graph.START  // TEMP: BỎ QUA START/ AUTH ĐỂ DỄ TEST
+//                        val startDest = Graph.MAIN  // TEMP: BỎ QUA START/ AUTH ĐỂ DỄ TEST
 
                         NavHost(
                             navController = navController!!,
