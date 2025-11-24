@@ -4,7 +4,7 @@ using SpotiXeApi.Services;
 namespace SpotiXeApi.Controllers
 {
     [ApiController]
-    [Route("admin/firebase")]
+    [Route("api/admin/firebase")]
     public class AdminFirebaseController : ControllerBase
     {
         private readonly FirebaseService _firebaseService;

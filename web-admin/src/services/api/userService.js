@@ -1,4 +1,4 @@
-import api from '../api'
+import api from "../api";
 
 /**
  * Fetch all regular users (Email + OTP)
@@ -6,13 +6,13 @@ import api from '../api'
  */
 export const getRegularUsers = async () => {
   try {
-    const response = await api.get('/api/users')
-    return response.data
+    const response = await api.get("/users");
+    return response.data;
   } catch (error) {
-    console.error('Error fetching regular users:', error)
-    throw error
+    console.error("Error fetching regular users:", error);
+    throw error;
   }
-}
+};
 
 /**
  * Fetch all Firebase users (Google login)
@@ -20,13 +20,13 @@ export const getRegularUsers = async () => {
  */
 export const getFirebaseUsers = async () => {
   try {
-    const response = await api.get('/admin/firebase')
-    return response.data
+    const response = await api.get("/admin/firebase");
+    return response.data;
   } catch (error) {
-    console.error('Error fetching Firebase users:', error)
-    throw error
+    console.error("Error fetching Firebase users:", error);
+    throw error;
   }
-}
+};
 
 /**
  * Disable a Firebase user account
@@ -35,13 +35,13 @@ export const getFirebaseUsers = async () => {
  */
 export const disableFirebaseUser = async (firebaseUid) => {
   try {
-    const response = await api.post(`/admin/firebase/disable/${firebaseUid}`)
-    return response.data
+    const response = await api.post(`/admin/firebase/disable/${firebaseUid}`);
+    return response.data;
   } catch (error) {
-    console.error('Error disabling Firebase user:', error)
-    throw error
+    console.error("Error disabling Firebase user:", error);
+    throw error;
   }
-}
+};
 
 /**
  * Enable a Firebase user account
@@ -50,13 +50,13 @@ export const disableFirebaseUser = async (firebaseUid) => {
  */
 export const enableFirebaseUser = async (firebaseUid) => {
   try {
-    const response = await api.post(`/admin/firebase/enable/${firebaseUid}`)
-    return response.data
+    const response = await api.post(`/admin/firebase/enable/${firebaseUid}`);
+    return response.data;
   } catch (error) {
-    console.error('Error enabling Firebase user:', error)
-    throw error
+    console.error("Error enabling Firebase user:", error);
+    throw error;
   }
-}
+};
 
 /**
  * Disable a regular user account (Email + OTP)
@@ -65,13 +65,13 @@ export const enableFirebaseUser = async (firebaseUid) => {
  */
 export const disableRegularUser = async (userId) => {
   try {
-    const response = await api.put(`/api/users/${userId}/disable`)
-    return response.data
+    const response = await api.put(`/api/users/${userId}/disable`);
+    return response.data;
   } catch (error) {
-    console.error('Error disabling regular user:', error)
-    throw error
+    console.error("Error disabling regular user:", error);
+    throw error;
   }
-}
+};
 
 /**
  * Enable a regular user account (Email + OTP)
@@ -80,13 +80,13 @@ export const disableRegularUser = async (userId) => {
  */
 export const enableRegularUser = async (userId) => {
   try {
-    const response = await api.put(`/api/users/${userId}/enable`)
-    return response.data
+    const response = await api.put(`/api/users/${userId}/enable`);
+    return response.data;
   } catch (error) {
-    console.error('Error enabling regular user:', error)
-    throw error
+    console.error("Error enabling regular user:", error);
+    throw error;
   }
-}
+};
 
 /**
  * Merge and normalize user data from both sources
@@ -95,34 +95,35 @@ export const enableRegularUser = async (userId) => {
  * @returns {Array} Merged and normalized user list
  */
 export const mergeUserData = (regularUsers = [], firebaseUsers = []) => {
-  const merged = []
+  const merged = [];
 
   // Add regular users (Email + OTP)
-  regularUsers.forEach(user => {
+  regularUsers.forEach((user) => {
     merged.push({
       id: user.userId || user.id,
-      username: user.username || user.name || 'N/A',
+      username: user.username || user.name || "N/A",
       email: user.email,
       isActive: user.isActive === 1 || user.isActive === true,
-      type: 'email',
-      logo: '/EmailWithOtp.svg',
+      type: "email",
+      logo: "/EmailWithOtp.svg",
       originalData: user,
-    })
-  })
+    });
+  });
 
   // Add Firebase users (Google login)
-  firebaseUsers.forEach(user => {
+  firebaseUsers.forEach((user) => {
     merged.push({
       id: user.uid || user.firebaseUid || user.id,
-      username: user.displayName || user.name || user.email?.split('@')[0] || 'N/A',
+      username:
+        user.displayName || user.name || user.email?.split("@")[0] || "N/A",
       email: user.email,
       isActive: !user.disabled && user.disabled !== true,
-      type: 'firebase',
-      logo: '/Firebase.svg',
+      type: "firebase",
+      logo: "/Firebase.svg",
       firebaseUid: user.uid || user.firebaseUid,
       originalData: user,
-    })
-  })
+    });
+  });
 
-  return merged
-}
+  return merged;
+};
