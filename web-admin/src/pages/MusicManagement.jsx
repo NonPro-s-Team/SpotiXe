@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Filter, MoreVertical, Edit, Trash2, Plus, Upload } from 'lucide-react'
+import { Filter, MoreVertical, Edit, Trash2, Plus, Upload, Search } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Button from '@components/common/Button'
 import Card from '@components/common/Card'
@@ -20,6 +20,7 @@ export default function MusicManagement() {
   const queryClient = useQueryClient()
   const [page, setPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10) // Mặc định 10 mỗi trang
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedTab, setSelectedTab] = useState('all')
   // const [showUploadModal, setShowUploadModal] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
@@ -83,12 +84,25 @@ export default function MusicManagement() {
 
   // Enrich songs with artist and album names
   const enrichedSongs = useMemo(() => {
-    return songsData?.map((song) => ({
+    const songs = songsData?.map((song) => ({
       ...song,
       artistName: artistMap.get(song.artistId) || 'Không rõ',
       albumTitle: song.albumId ? albumMap.get(song.albumId) || 'Unknown' : null,
     })) || []
-  }, [songsData, artistMap, albumMap])
+
+    // Apply search filter
+    if (!searchQuery.trim()) return songs
+    
+    const query = searchQuery.toLowerCase()
+    return songs.filter((song) => {
+      return (
+        song.title?.toLowerCase().includes(query) ||
+        song.artistName?.toLowerCase().includes(query) ||
+        song.albumTitle?.toLowerCase().includes(query) ||
+        song.genre?.toLowerCase().includes(query)
+      )
+    })
+  }, [songsData, artistMap, albumMap, searchQuery])
 
   // Transform API data to match existing structure
   const totalSongs = enrichedSongs?.length || 0
@@ -275,7 +289,22 @@ export default function MusicManagement() {
       {/* Filters & Bulk Actions */}
       <Card className="p-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap flex-1">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-tertiary" />
+              <input
+                type="text"
+                placeholder="Search songs..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                  setPage(1)
+                }}
+                className="w-full pl-10 pr-4 py-2 bg-bg-secondary border border-border rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-spotify-green"
+              />
+            </div>
+            
             <Button
               variant="secondary"
               size="sm"
@@ -299,6 +328,23 @@ export default function MusicManagement() {
                 </Button>
               </div>
             )}
+          </div>
+          
+          {/* Page Size Selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-text-secondary whitespace-nowrap">Per page:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value))
+                setPage(1)
+              }}
+              className="px-3 py-2 bg-bg-secondary border border-border rounded-lg text-text-primary focus:outline-none focus:border-spotify-green cursor-pointer"
+            >
+              <option value={10}>10</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
           </div>
         </div>
 
