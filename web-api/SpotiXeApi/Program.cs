@@ -1,4 +1,5 @@
-using System.Text;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,6 +7,25 @@ using SpotiXeApi.Context;
 using SpotiXeApi.Filters;
 using SpotiXeApi.Repositories;
 using SpotiXeApi.Services;
+using System.Text;
+
+// Load Firebase Admin SDK
+var firebaseCredentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
+
+if (string.IsNullOrEmpty(firebaseCredentialsPath))
+{
+    Console.WriteLine("GOOGLE_APPLICATION_CREDENTIALS is NOT set!");
+}
+else
+{
+    FirebaseApp.Create(new AppOptions()
+    {
+        Credential = GoogleCredential.FromFile(firebaseCredentialsPath)
+    });
+
+    Console.WriteLine("Firebase Admin SDK loaded successfully!");
+}
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,7 +126,7 @@ builder.Services.AddScoped<ActiveUserAuthorizationFilter>();
 builder.Services.AddScoped<EmailOtpService>();  
 builder.Services.AddScoped<EmailSenderService>();
 
-//builder.WebHost.UseUrls("http://localhost:6000", "https://localhost:6001");
+builder.WebHost.UseUrls("http://localhost:6000", "https://localhost:6001");
 
 var app = builder.Build();
 

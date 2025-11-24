@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SpotiXeApi.Context;
@@ -146,5 +146,55 @@ public class UsersController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    [HttpPut("{id:long}/disable")]
+    public async Task<IActionResult> DisableUser([FromRoute] long id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.Users.FirstOrDefaultAsync(x => x.UserId == id, cancellationToken);
+        if (entity == null) return NotFound();
+
+        // Nếu đã disabled rồi thì không làm gì
+        if (entity.IsActive == 0)
+            return Ok(new { message = "User already disabled." });
+
+        // Lấy thông tin admin từ header
+        var userIdHeader = Request.Headers["X-User-Id"].FirstOrDefault();
+        var userNameHeader = Request.Headers["X-User-Name"].FirstOrDefault();
+        long? adminId = long.TryParse(userIdHeader, out var tmp) ? tmp : (long?)null;
+
+        entity.IsActive = 0;
+        entity.UpdatedAt = DateTime.UtcNow;
+        entity.UpdatedById = adminId;
+        entity.UpdatedByName = string.IsNullOrWhiteSpace(userNameHeader) ? null : userNameHeader;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Ok(new { success = true, message = "User disabled successfully." });
+    }
+
+    [HttpPut("{id:long}/enable")]
+    public async Task<IActionResult> EnableUser([FromRoute] long id, CancellationToken cancellationToken = default)
+    {
+        var entity = await _context.Users.FirstOrDefaultAsync(x => x.UserId == id, cancellationToken);
+        if (entity == null) return NotFound();
+
+        // Nếu đã active rồi thì không làm gì
+        if (entity.IsActive == 1)
+            return Ok(new { message = "User already active." });
+
+        // Lấy thông tin admin từ header
+        var userIdHeader = Request.Headers["X-User-Id"].FirstOrDefault();
+        var userNameHeader = Request.Headers["X-User-Name"].FirstOrDefault();
+        long? adminId = long.TryParse(userIdHeader, out var tmp) ? tmp : (long?)null;
+
+        entity.IsActive = 1;
+        entity.UpdatedAt = DateTime.UtcNow;
+        entity.UpdatedById = adminId;
+        entity.UpdatedByName = string.IsNullOrWhiteSpace(userNameHeader) ? null : userNameHeader;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Ok(new { success = true, message = "User enabled successfully." });
     }
 }
