@@ -189,12 +189,21 @@ public class AuthController : ControllerBase
         // Lấy user theo Email (nếu cần kiểm tra tồn tại)
         var user = await _userService.FindUserByEmailAsync(dto.Email);
 
-        if(user == null)
+        //if(user == null)
+        //{
+        //    return BadRequest(new
+        //    {
+        //        success = false,
+        //        message = "Óc chó, đã bị ban"
+        //    });
+        //}
+
+        if(user != null && user.IsActive == 0)
         {
             return BadRequest(new
             {
                 success = false,
-                message = "Óc chó, đã bị ban"
+                message = "Tài khoản của bạn đã bị vô hiệu hoá."
             });
         }
 

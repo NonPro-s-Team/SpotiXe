@@ -73,6 +73,7 @@ public class UserService
     {
         // Tìm user trong DB theo Email
         var existingUser = await _userRepository.FindByEmailAsync(email);
+
         if (existingUser != null)
             return existingUser;
 

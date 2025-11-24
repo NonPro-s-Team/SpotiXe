@@ -31,7 +31,8 @@ public class UserRepository : IUserRepository
     public async Task<User?> FindByEmailAsync(string email)
     {
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == email && u.IsActive == 1);
+            //.FirstOrDefaultAsync(u => u.Email == email && u.IsActive == 1);
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     /// <summary>
