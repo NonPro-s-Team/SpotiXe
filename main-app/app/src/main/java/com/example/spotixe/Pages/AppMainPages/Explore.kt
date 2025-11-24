@@ -47,7 +47,8 @@ fun ExploreScreen(navController: NavHostController) {
                     .padding(innerPadding)
                     .background(Color(0xFF121212))
                     .fillMaxSize()
-                    .statusBarsPadding(),
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
 
