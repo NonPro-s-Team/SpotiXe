@@ -3,13 +3,18 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SpotiXeApi.Context;
+using SpotiXeApi.Filters;
 using SpotiXeApi.Repositories;
 using SpotiXeApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Thêm global filter để kiểm tra user active
+    options.Filters.Add<ActiveUserAuthorizationFilter>();
+});
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -95,6 +100,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<FirebaseService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<UserService>();
+
+// Register Filters
+builder.Services.AddScoped<ActiveUserAuthorizationFilter>();
 builder.Services.AddScoped<EmailOtpService>();  
 builder.Services.AddScoped<EmailSenderService>();
 
