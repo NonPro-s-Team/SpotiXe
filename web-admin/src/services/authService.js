@@ -98,66 +98,6 @@ export const loginWithBackend = async (firebaseToken) => {
 };
 
 /**
- * Kiểm tra token còn hạn không bằng cách gọi /auth/me
- * @returns {Promise<Object>} { valid: boolean, user?: Object, error?: string }
- */
-export const validateToken = async () => {
-  try {
-    const { getToken } = await import("../utils/tokenStorage");
-    const token = getToken();
-
-    if (!token) {
-      return { valid: false, error: "No token found" };
-    }
-
-    const endpoint = "/auth/me";
-    const fullUrl = `${API_BASE_URL}${endpoint}`;
-
-    console.log("🔍 Validating token...");
-
-    const response = await axios.get(fullUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    console.log("✅ Token is valid:", response.data);
-
-    // Token còn hạn - cập nhật user data nếu cần
-    if (response.data) {
-      setUserData(response.data);
-    }
-
-    return {
-      valid: true,
-      user: response.data,
-    };
-  } catch (error) {
-    console.error("❌ Token validation failed:", {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-    });
-
-    // Nếu là 401 Unauthorized - token hết hạn hoặc không hợp lệ
-    if (error.response?.status === 401) {
-      clearAuthData();
-      return {
-        valid: false,
-        error: "Token expired or invalid",
-        unauthorized: true,
-      };
-    }
-
-    // Các lỗi khác (network, server error...)
-    return {
-      valid: false,
-      error: error.message || "Token validation failed",
-    };
-  }
-};
-
-/**
  * Logout - xóa token và user data
  */
 export const logoutFromBackend = () => {
