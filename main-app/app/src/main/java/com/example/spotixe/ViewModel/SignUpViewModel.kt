@@ -43,6 +43,21 @@ object SignUpViewModel {
         return name
     }
 
+    fun loadUsername(): String {
+        if (name.isEmpty()) {
+            name = sharedPref?.getString("name", "") ?: ""
+        }
+        return name
+    }
+
+    fun saveName(name: String) {
+        this.name = name
+        sharedPref?.edit()?.apply {
+            putString("name", name)
+            apply()
+        }
+    }
+
     fun saveEmail(email: String) {
         this.email = email
         sharedPref?.edit()?.apply {

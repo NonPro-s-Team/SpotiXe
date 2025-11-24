@@ -46,7 +46,7 @@ public class UserService
         }
     }
 
-    public async Task<User> FindOrCreateUserByEmailAsync(string email)
+    public async Task<User> FindOrCreateUserByEmailAsync(string email, string displayName)
     {
         // Tìm user trong DB theo Email
         var existingUser = await _userRepository.FindByEmailAsync(email);
@@ -59,7 +59,7 @@ public class UserService
         var newUser = new User
         {
             Email = email,
-            Username = email.Split('@')[0],
+            Username = displayName ?? email.Split('@')[0],
             CreatedAt = DateTime.UtcNow,
             IsActive = 1UL
         };

@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -105,9 +106,16 @@ fun HomeScreen(navController: NavHostController) {
                         Box(
                             modifier = Modifier
                                 .padding(start = 8.dp)
-                                .size(55.dp)
-                                .clip(CircleShape)
-                                .clickable { navController.navigate(MainRoute.User) },
+                                .size(40.dp)
+                                .clickable {
+                                    navController.navigate(MainRoute.User) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             if (userData?.avatarUrl != null && userData?.avatarUrl?.isNotEmpty() == true) {

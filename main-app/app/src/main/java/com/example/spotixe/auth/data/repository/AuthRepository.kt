@@ -238,9 +238,9 @@ class AuthRepository(private val context: Context) {
      * @param otp the one-time password to verify
      * @return Result containing VerifyOtpRespone or error
      */
-    suspend fun verifyOtp(email: String, otp: String): Result<VerifyOtpRespone> {
+    suspend fun verifyOtp(email: String, otp: String, username: String?): Result<VerifyOtpRespone> {
         return try{
-            val respone = authApiService.verifyOtp(VerifyOtpRequest(email, otp))
+            val respone = authApiService.verifyOtp(VerifyOtpRequest(email, otp, username))
 
             if(respone.isSuccessful && respone.body() != null){
                 val verifyOtpRespone = respone.body()!!

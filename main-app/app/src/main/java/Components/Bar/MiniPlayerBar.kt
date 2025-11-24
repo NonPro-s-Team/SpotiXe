@@ -47,41 +47,49 @@ fun MiniPlayerBar(
                 shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
             )
     ) {
+        // 🔹 Chỉ phần "nội dung" phía trên mới click mở full view
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .padding(horizontal = 12.dp)
-                .clickable { onOpenSongView() },
+                .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = song.coverImageUrl,
-                contentDescription = song.title,
+            // Bọc phần cover + text trong 1 Row riêng có clickable
+            Row(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(6.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(Modifier.width(10.dp))
-
-            Column(Modifier.weight(1f)) {
-                Text(
-                    text = song.title,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    .weight(1f)
+                    .clickable { onOpenSongView() },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = song.coverImageUrl,
+                    contentDescription = song.title,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(6.dp)),
+                    contentScale = ContentScale.Crop
                 )
-                Text(
-                    text = song.artistName ?: "Artist",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    fontWeight = FontWeight.SemiBold
-                )
+
+                Spacer(Modifier.width(10.dp))
+
+                Column {
+                    Text(
+                        text = song.title,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = song.artistName ?: "Artist",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
 
             IconButton(onClick = { playerViewModel.togglePlayPause() }) {
@@ -94,12 +102,12 @@ fun MiniPlayerBar(
         }
 
         ScrubbableProgressBar(
-            progress = progress,
-            height = 4.dp,
+            progress = progress,          // 0f..1f
+            height = 6.dp,                // tăng nhẹ để dễ vuốt hơn
             activeColor = Color(0xFF1DB954),
             inactiveColor = Color.White.copy(alpha = 0.4f),
             onSeekEnd = { p ->
-                // Chỉ seek đúng 1 lần khi thả tay
+                // Seek chỉ 1 lần khi thả tay
                 playerViewModel.seekTo(p)
             },
             modifier = Modifier
@@ -108,4 +116,3 @@ fun MiniPlayerBar(
         )
     }
 }
-

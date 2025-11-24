@@ -14,6 +14,7 @@ import android.graphics.drawable.Icon
 import android.media.RingtoneManager
 import android.os.Build
 import android.util.Log
+import android.widget.RemoteViews
 import androidx.compose.ui.graphics.Color
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -91,7 +92,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         val channelId = "spotixe_general"
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
@@ -106,6 +106,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 )
             }
             notificationManager.createNotificationChannel(channel)
+        }
+
+        val collapsedView = RemoteViews(
+            context.packageName,
+            com.example.spotixe.R.drawable.custom_notification
+        ).apply {
+            setTextViewText(com.example.spotixe.R.id.txt_title, title)
+            setTextViewText(com.example.spotixe.R.id.txt_body, message)
+            // Nếu có bitmap cover thì setImageViewBitmap(...)
         }
 
         val builder = NotificationCompat.Builder(context, channelId)

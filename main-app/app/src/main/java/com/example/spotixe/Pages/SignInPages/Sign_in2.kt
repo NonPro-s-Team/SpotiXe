@@ -160,7 +160,7 @@ fun Sign_in2Screen(
                     if (otp.length < 6) {
                         Toast.makeText(context, "Please enter full 6-digit OTP", Toast.LENGTH_SHORT).show()
                     } else {
-                        authViewModel.verifyOtp(email, otp)
+                        authViewModel.verifyOtp(email, otp, username = "")
                         isLoading = true
                     }
                 },
@@ -175,7 +175,7 @@ fun Sign_in2Screen(
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        color = Color.Black,
+                        color = Color.Green,
                         modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp
                     )

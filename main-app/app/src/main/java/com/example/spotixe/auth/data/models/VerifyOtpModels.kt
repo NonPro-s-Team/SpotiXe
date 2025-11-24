@@ -7,7 +7,10 @@ data class VerifyOtpRequest(
     val email: String,
 
     @SerializedName("otp")
-    val otp: String
+    val otp: String,
+
+    @SerializedName("displayName")
+    val username: String?
 )
 
 data class VerifyOtpRespone(
@@ -18,5 +21,6 @@ data class VerifyOtpRespone(
     val token: String,
 
     @SerializedName("user")
-    val user: UserDto
+    val user: VerifyResponeModel
 )
+

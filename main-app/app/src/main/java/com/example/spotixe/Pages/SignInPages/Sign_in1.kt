@@ -239,7 +239,7 @@ fun Sign_in1Screen(
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
-                            color = Color.Black,
+                            color = Color.Green,
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp
                         )
