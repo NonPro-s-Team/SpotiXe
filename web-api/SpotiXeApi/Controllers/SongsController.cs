@@ -209,4 +209,47 @@ public class SongsController : ControllerBase
         }
         return NoContent();
     }
+
+    /// <summary>
+    /// L?y toàn b? bài hát theo AlbumId (ph?c v? phát nh?c d?ng playlist)
+    /// </summary>
+    [HttpGet("album/{albumId:long}")]
+    public async Task<IActionResult> GetSongsByAlbumId(
+        [FromRoute] long albumId,
+        [FromQuery] bool includeDeleted = false,
+        CancellationToken cancellationToken = default)
+    {
+        IQueryable<Song> query = _context.Songs
+            .Include(s => s.Artist)
+            .Include(s => s.Album)
+            .AsNoTracking()
+            .Where(s => s.AlbumId == albumId);
+
+        if (!includeDeleted)
+            query = query.Where(x => x.IsActive == 1UL);
+
+        var results = await query
+            .OrderBy(s => s.SongId) // ho?c OrderBy ReleaseDate, Position... tùy b?n
+            .Select(s => new
+            {
+                s.SongId,
+                s.Title,
+                s.Duration,
+                s.ReleaseDate,
+                s.AudioFileUrl,
+                s.CoverImageUrl,
+                s.Genre,
+                s.ArtistId,
+                ArtistName = s.Artist.Name,
+                s.AlbumId,
+                AlbumTitle = s.Album != null ? s.Album.Title : null,
+                s.IsActive,
+                s.CreatedAt,
+                s.UpdatedAt,
+                s.DeletedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return Ok(results);
+    }
 }

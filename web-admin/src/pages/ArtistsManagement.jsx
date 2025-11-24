@@ -181,10 +181,10 @@ export default function ArtistsManagement() {
                   <p className="text-sm text-text-tertiary">
                     {artist.bio || 'Chưa có mô tả'}
                   </p>
-                  <div className="mt-3 flex items-center justify-center gap-4 text-xs text-text-tertiary">
+                  {/* <div className="mt-3 flex items-center justify-center gap-4 text-xs text-text-tertiary">
                     <span>{artist.totalSongs || 0} bài hát</span>
                     <span>{artist.totalAlbums || 0} album</span>
-                  </div>
+                  </div> */}
                 </div>
               </Card>
             </motion.div>
