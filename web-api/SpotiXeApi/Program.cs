@@ -98,6 +98,8 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<EmailOtpService>();  
 builder.Services.AddScoped<EmailSenderService>();
 
+//builder.WebHost.UseUrls("http://localhost:6000", "https://localhost:6001");
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline

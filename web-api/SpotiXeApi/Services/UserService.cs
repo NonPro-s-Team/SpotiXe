@@ -68,6 +68,17 @@ public class UserService
         return newUser;
     }
 
+    public async Task<User> FindUserByEmailAsync(string email)
+    {
+        // Tìm user trong DB theo Email
+        var existingUser = await _userRepository.FindByEmailAsync(email);
+        if (existingUser != null)
+            return existingUser;
+
+        else
+            return null!;
+    }
+
 
     /// <summary>
     /// Tạo user mới từ thông tin Firebase

@@ -186,6 +186,20 @@ public class AuthController : ControllerBase
     [HttpPost("request-otp")]
     public async Task<IActionResult> RequestOtp([FromBody] RequestOtpDto dto)
     {
+        // Lấy user theo Email (nếu cần kiểm tra tồn tại)
+        var user = await _userService.FindUserByEmailAsync(dto.Email);
+
+        if(user == null)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Tài khoản của bạn đã bị vô hiệu hoá."
+            });
+        }
+
+        Console.WriteLine($"\n\n\n\n\n{user?.IsActive}");
+
         // Validate email format
         if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))
             return BadRequest("Invalid email address.");
@@ -251,6 +265,15 @@ public class AuthController : ControllerBase
 
             if (user == null)
                 return StatusCode(500, "Failed to create user.");
+
+            if (user != null && user.IsActive == 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Tài khoản của bạn đã bị vô hiệu hoá."
+                });
+            }
 
             // Xoá OTP sau khi dùng (chống replay)
             await _emailOtpService.DeleteOtpByEmailAsync(dto.Email);
