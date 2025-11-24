@@ -258,7 +258,9 @@ class AuthRepository(private val context: Context) {
             } else {
                 val errorBody = respone.errorBody()?.string()
                 Log.e(TAG, "Verify OTP failed: ${respone.code()} - $errorBody")
-                Result.failure(Exception("Verify OTP failed: ${respone.code()}"))
+                // Return the actual error message from API (e.g., "Invalid OTP.")
+                val errorMessage = errorBody ?: "Verify OTP failed: ${respone.code()}"
+                Result.failure(Exception(errorMessage))
             }
         }catch (e: Exception) {
             Log.e(TAG, "Error verifying OTP", e)

@@ -64,11 +64,25 @@ fun Sign_in2Screen(
     var showGoogleErrorDialog by rememberSaveable { mutableStateOf(false) }
     var googleErrorDialogMessage by rememberSaveable { mutableStateOf("") }
 
+    // State để hiển thị dialog cho Verify OTP Error
+    var showVerifyOtpErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var verifyOtpErrorMessage by rememberSaveable { mutableStateOf("") }
+
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(context.applicationContext as Application)
     )
 
     val verifyState by authViewModel.verifyState.collectAsState()
+    val verifyOtpError by authViewModel.verifyOtpError.collectAsState()
+
+    // Lắng nghe lỗi verify OTP
+    LaunchedEffect(verifyOtpError) {
+        verifyOtpError?.let { errorMsg ->
+            isLoading = false
+            verifyOtpErrorMessage = errorMsg
+            showVerifyOtpErrorDialog = true
+        }
+    }
 
     // Google Sign-In Error Dialog
     SpotixeDialog(
@@ -81,6 +95,22 @@ fun Sign_in2Screen(
         },
         onDismissRequest = {
             showGoogleErrorDialog = false
+        }
+    )
+
+    // Verify OTP Error Dialog
+    SpotixeDialog(
+        visible = showVerifyOtpErrorDialog,
+        title = "Lỗi xác thực OTP",
+        message = verifyOtpErrorMessage,
+        primaryButtonText = "OK",
+        onPrimaryClick = {
+            showVerifyOtpErrorDialog = false
+            authViewModel.clearVerifyOtpError()
+        },
+        onDismissRequest = {
+            showVerifyOtpErrorDialog = false
+            authViewModel.clearVerifyOtpError()
         }
     )
 

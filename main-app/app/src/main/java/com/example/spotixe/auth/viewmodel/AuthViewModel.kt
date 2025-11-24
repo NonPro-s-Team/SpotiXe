@@ -33,6 +33,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val _verifyState = MutableStateFlow<VerifyOtpRespone?>(null)
     val verifyState = _verifyState.asStateFlow()
 
+    // verify otp error state
+    private val _verifyOtpError = MutableStateFlow<String?>(null)
+    val verifyOtpError: StateFlow<String?> = _verifyOtpError
+
 
     /**
      * Check if user is logged in
@@ -69,11 +73,17 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
             result.onSuccess { response ->
                 _verifyState.value = response
+                _verifyOtpError.value = null // Clear error on success
             }.onFailure { e ->
                 _verifyState.value = null
+                _verifyOtpError.value = e.message ?: "Verify OTP failed"
                 Log.e("AuthVM", "Verify OTP failed", e)
             }
         }
+    }
+
+    fun clearVerifyOtpError() {
+        _verifyOtpError.value = null
     }
 
     /**
