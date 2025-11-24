@@ -216,7 +216,7 @@ fun HomeScreen(navController: NavHostController) {
                                 ApiSongCardRow(
                                     song = song,
                                     navController = navController,
-                                    playerViewModel = playerVM  // Truyền playerVM để tự động phát nhạc
+                                    playerViewModel = playerVM
                                 )
                             }
                         }
