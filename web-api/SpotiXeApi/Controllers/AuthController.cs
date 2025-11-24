@@ -247,7 +247,7 @@ public class AuthController : ControllerBase
                 return BadRequest("Invalid OTP.");
 
             // Lấy hoặc tạo user theo Email
-            var user = await _userService.FindOrCreateUserByEmailAsync(dto.Email);
+            var user = await _userService.FindOrCreateUserByEmailAsync(dto.Email, dto.DisplayName);
 
             if (user == null)
                 return StatusCode(500, "Failed to create user.");

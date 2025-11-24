@@ -53,9 +53,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun verifyOtp(email: String, otp: String) {
+    fun verifyOtp(email: String, otp: String, username: String?) {
         viewModelScope.launch {
-            val result = authRepository.verifyOtp(email, otp)
+            val result = authRepository.verifyOtp(email, otp, username)
 
             result.onSuccess { response ->
                 _verifyState.value = response
