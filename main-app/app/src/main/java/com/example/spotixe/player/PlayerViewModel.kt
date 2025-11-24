@@ -11,6 +11,7 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.example.spotixe.Data.model.Song
+import com.example.spotixe.auth.data.AuthDataStore
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.Job
@@ -18,6 +19,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -58,9 +60,29 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
     val repeatMode: StateFlow<Int> = _repeatMode.asStateFlow()
 
     private var progressJob: Job? = null
+    private val authDataStore = AuthDataStore(application)
     
     init {
         initializeController(application)
+        observeAuthState()
+    }
+    
+    private fun observeAuthState() {
+        viewModelScope.launch {
+            // Get the initial user ID to establish a baseline
+            var currentUserId = authDataStore.getUserData().first()?.email
+
+            // Collect user data flow to react to changes
+            authDataStore.getUserData().collect { userData ->
+                val newUserId = userData?.email
+                // If the user ID has changed (login, logout, switch), reset the player
+                if (newUserId != currentUserId) {
+                    Log.d(TAG, "User session changed from '$currentUserId' to '$newUserId'. Resetting player state.")
+                    reset()
+                }
+                currentUserId = newUserId
+            }
+        }
     }
     
     private fun initializeController(application: Application) {
@@ -132,7 +154,7 @@ class PlayerViewModel(application: Application) : AndroidViewModel(application) 
             .setMediaMetadata(
                 MediaMetadata.Builder()
                     .setTitle(song.title)
-                    .setArtist("Artist")
+                    .setArtist(song.artistName ?: "Unknown Artist")
                     .setArtworkUri(android.net.Uri.parse(song.coverImageUrl))
                     .build()
             )
