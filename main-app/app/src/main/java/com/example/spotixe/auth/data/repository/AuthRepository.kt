@@ -222,7 +222,16 @@ class AuthRepository(private val context: Context) {
             } else {
                 val errorBody = response.errorBody()?.string()
                 Log.e(TAG, "OTP request failed: ${response.code()} - $errorBody")
-                Result.failure(Exception("OTP request failed: ${response.code()}"))
+
+                // Try to parse error message from JSON response
+                val errorMessage = try {
+                    val jsonObject = org.json.JSONObject(errorBody ?: "{}")
+                    jsonObject.optString("message", "OTP request failed: ${response.code()}")
+                } catch (e: Exception) {
+                    "OTP request failed: ${response.code()}"
+                }
+
+                Result.failure(Exception(errorMessage))
             }
 
         } catch (e: Exception) {

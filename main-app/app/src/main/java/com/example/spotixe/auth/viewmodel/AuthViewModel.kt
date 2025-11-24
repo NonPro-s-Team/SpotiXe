@@ -26,6 +26,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val _otpState = MutableStateFlow<String?>(null)
     val otpState: StateFlow<String?> = _otpState
 
+    private val _otpErrorMessage = MutableStateFlow<String?>(null)
+    val otpErrorMessage: StateFlow<String?> = _otpErrorMessage
+
     // verify otp
     private val _verifyState = MutableStateFlow<VerifyOtpRespone?>(null)
     val verifyState = _verifyState.asStateFlow()
@@ -47,10 +50,17 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
             result.onSuccess {
                 _otpState.value = "success"
-            }.onFailure {
-                _otpState.value = it.message ?: "error"
+                _otpErrorMessage.value = null
+            }.onFailure { e ->
+                _otpState.value = "error"
+                _otpErrorMessage.value = e.message ?: "Unknown error occurred"
             }
         }
+    }
+
+    fun clearOtpError() {
+        _otpErrorMessage.value = null
+        _otpState.value = null
     }
 
     fun verifyOtp(email: String, otp: String, username: String?) {

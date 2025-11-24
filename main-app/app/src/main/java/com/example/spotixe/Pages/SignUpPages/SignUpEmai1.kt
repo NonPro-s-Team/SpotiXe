@@ -2,6 +2,7 @@ package com.example.spotixe.Pages.Pages.SignUpPages
 
 import Components.Buttons.BackButton
 import Components.Buttons.GoogleSignInButtonFirebase
+import Components.Layout.SpotixeDialog
 import android.app.Application
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -84,7 +85,47 @@ fun Sign_UpEmail1Screen(
     )
 
     val otpState by authViewModel.otpState.collectAsState()
+    val otpErrorMessage by authViewModel.otpErrorMessage.collectAsState()
 
+    // State để hiển thị dialog
+    var showErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var errorDialogMessage by rememberSaveable { mutableStateOf("") }
+
+    // Lắng nghe kết quả request OTP
+    LaunchedEffect(otpState) {
+        when (otpState) {
+            "success" -> {
+                // Navigate to OTP verification screen
+                navController.navigate(AuthRoute.SignUpEmail2) {
+                    launchSingleTop = true
+                }
+            }
+            "error" -> {
+                // Hiển thị dialog với message từ API
+                errorDialogMessage = otpErrorMessage ?: "Failed to send OTP"
+                showErrorDialog = true
+            }
+            null -> {
+                // Không làm gì khi null (trạng thái ban đầu)
+            }
+        }
+    }
+
+    // Error Dialog
+    SpotixeDialog(
+        visible = showErrorDialog,
+        title = "Lỗi đăng ký",
+        message = errorDialogMessage,
+        primaryButtonText = "OK",
+        onPrimaryClick = {
+            showErrorDialog = false
+            authViewModel.clearOtpError()
+        },
+        onDismissRequest = {
+            showErrorDialog = false
+            authViewModel.clearOtpError()
+        }
+    )
 
     BoxWithConstraints(
         modifier = Modifier

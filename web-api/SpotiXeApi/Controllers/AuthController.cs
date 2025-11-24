@@ -194,11 +194,9 @@ public class AuthController : ControllerBase
             return BadRequest(new
             {
                 success = false,
-                message = "Tài khoản của bạn đã bị vô hiệu hoá."
+                message = "Óc chó, đã bị ban"
             });
         }
-
-        Console.WriteLine($"\n\n\n\n\n{user?.IsActive}");
 
         // Validate email format
         if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))

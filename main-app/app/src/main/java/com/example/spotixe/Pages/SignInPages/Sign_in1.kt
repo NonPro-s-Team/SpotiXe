@@ -58,6 +58,7 @@ import com.example.spotixe.R
 import com.example.spotixe.auth.data.repository.AuthViewModelFactory
 import com.example.spotixe.auth.viewmodel.AuthViewModel
 import com.example.spotixe.viewmodel.SignUpViewModel
+import Components.Layout.SpotixeDialog
 
 @Composable
 fun Sign_in1Screen(
@@ -79,6 +80,11 @@ fun Sign_in1Screen(
         factory = AuthViewModelFactory(context.applicationContext as Application)
     )
     val otpState by authViewModel.otpState.collectAsState()
+    val otpErrorMessage by authViewModel.otpErrorMessage.collectAsState()
+
+    // State để hiển thị dialog
+    var showErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var errorDialogMessage by rememberSaveable { mutableStateOf("") }
 
     // Lắng nghe kết quả request OTP
     LaunchedEffect(otpState) {
@@ -91,16 +97,33 @@ fun Sign_in1Screen(
                 // Chuyển sang màn hình nhập OTP
                 navController.navigate(AuthRoute.SignIn2)
             }
-            "error", null -> {
-                // Không làm gì khi null (trạng thái ban đầu)
-            }
-            else -> {
-                // Có lỗi
+            "error" -> {
+                // Hiển thị dialog với message từ API
                 isLoading = false
-                Toast.makeText(context, "Failed to send OTP: $otpState", Toast.LENGTH_LONG).show()
+                errorDialogMessage = otpErrorMessage ?: "Failed to send OTP"
+                showErrorDialog = true
+            }
+            null -> {
+                // Không làm gì khi null (trạng thái ban đầu)
             }
         }
     }
+
+    // Error Dialog
+    SpotixeDialog(
+        visible = showErrorDialog,
+        title = "Lỗi đăng nhập",
+        message = errorDialogMessage,
+        primaryButtonText = "OK",
+        onPrimaryClick = {
+            showErrorDialog = false
+            authViewModel.clearOtpError()
+        },
+        onDismissRequest = {
+            showErrorDialog = false
+            authViewModel.clearOtpError()
+        }
+    )
 
     BoxWithConstraints(
         modifier = Modifier
