@@ -2,15 +2,23 @@ import api from "../api";
 
 /**
  * Fetch all regular users (Email + OTP)
+ * Include all users regardless of isActive status (0 or 1)
  * @returns {Promise<Array>} List of regular users
  */
 export const getRegularUsers = async () => {
   try {
-    const response = await api.get("/users");
-    return response.data;
+    // Fetch all users including inactive ones (isActive = 0)
+    const response = await api.get("/users?includeDeleted=true");
+    // Handle different response structures
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (data?.data && Array.isArray(data.data)) return data.data;
+    if (data?.users && Array.isArray(data.users)) return data.users;
+    console.warn("Regular users response is not an array:", data);
+    return [];
   } catch (error) {
     console.error("Error fetching regular users:", error);
-    throw error;
+    return []; // Return empty array instead of throwing
   }
 };
 
@@ -21,10 +29,16 @@ export const getRegularUsers = async () => {
 export const getFirebaseUsers = async () => {
   try {
     const response = await api.get("/admin/firebase");
-    return response.data;
+    // Handle different response structures
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (data?.data && Array.isArray(data.data)) return data.data;
+    if (data?.users && Array.isArray(data.users)) return data.users;
+    console.warn("Firebase users response is not an array:", data);
+    return [];
   } catch (error) {
     console.error("Error fetching Firebase users:", error);
-    throw error;
+    return []; // Return empty array instead of throwing
   }
 };
 
@@ -65,7 +79,7 @@ export const enableFirebaseUser = async (firebaseUid) => {
  */
 export const disableRegularUser = async (userId) => {
   try {
-    const response = await api.put(`/api/users/${userId}/disable`);
+    const response = await api.put(`/users/${userId}/disable`);
     return response.data;
   } catch (error) {
     console.error("Error disabling regular user:", error);
@@ -80,7 +94,7 @@ export const disableRegularUser = async (userId) => {
  */
 export const enableRegularUser = async (userId) => {
   try {
-    const response = await api.put(`/api/users/${userId}/enable`);
+    const response = await api.put(`/users/${userId}/enable`);
     return response.data;
   } catch (error) {
     console.error("Error enabling regular user:", error);
@@ -97,8 +111,12 @@ export const enableRegularUser = async (userId) => {
 export const mergeUserData = (regularUsers = [], firebaseUsers = []) => {
   const merged = [];
 
+  // Ensure inputs are arrays
+  const safeRegularUsers = Array.isArray(regularUsers) ? regularUsers : [];
+  const safeFirebaseUsers = Array.isArray(firebaseUsers) ? firebaseUsers : [];
+
   // Add regular users (Email + OTP)
-  regularUsers.forEach((user) => {
+  safeRegularUsers.forEach((user) => {
     merged.push({
       id: user.userId || user.id,
       username: user.username || user.name || "N/A",
@@ -111,7 +129,7 @@ export const mergeUserData = (regularUsers = [], firebaseUsers = []) => {
   });
 
   // Add Firebase users (Google login)
-  firebaseUsers.forEach((user) => {
+  safeFirebaseUsers.forEach((user) => {
     merged.push({
       id: user.uid || user.firebaseUid || user.id,
       username:
