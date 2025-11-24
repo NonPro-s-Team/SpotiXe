@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.spotixe.Data.BottomBarNavData
@@ -53,9 +54,17 @@ fun BottomBar(
                         selected = selected,
                         onClick = {
                             navController.navigate(item.routes) {
+                                // Pop up to the start destination of the graph to
+                                // avoid building up a large stack of destinations
+                                // on the back stack as users select items
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                // Avoid multiple copies of the same destination when
+                                // re-selecting the same item
                                 launchSingleTop = true
+                                // Restore state when re-selecting a previously selected item
                                 restoreState = true
-                                popUpTo(Graph.MAIN) { saveState = true }
                             }
                         },
                         icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
