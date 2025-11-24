@@ -31,6 +31,7 @@ object RetrofitClient {
         
         return OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(context)) // Auto-attach JWT
+            .addInterceptor(UnauthorizedInterceptor(context)) // Handle 401 Unauthorized
             .addInterceptor(loggingInterceptor) // Log requests/responses
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)

@@ -2,12 +2,11 @@ package com.example.spotixe
 
 import Components.Bar.MiniPlayerBar
 import Components.Bar.BottomBar
-import Components.NotificationPermissionScreen
 import Components.SetSystemBars
+import Components.Layout.SpotixeDialog
+import com.example.spotixe.auth.utils.UnauthorizedEventManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -29,8 +28,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.example.spotixe.Data.AlbumRepository
 import com.example.spotixe.Data.ArtistRepository
 import com.example.spotixe.Data.PlaylistRepository
@@ -50,7 +47,6 @@ import com.example.spotixe.player.MusicPlayerService
 import com.example.spotixe.ui.theme.SpotiXeTheme
 import androidx.lifecycle.ViewModelProvider
 import com.example.spotixe.auth.viewmodel.AuthViewModel
-import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.firstOrNull
 
 class MainActivity : ComponentActivity() {
@@ -90,6 +86,9 @@ class MainActivity : ComponentActivity() {
             // Authentication ViewModel
             val authVM: AuthViewModel = viewModel()
 
+            // Observe unauthorized dialog state
+            val showUnauthorizedDialog by UnauthorizedEventManager.showUnauthorizedDialog
+
             // Handle intent to navigate to player screen when notification is clicked
             LaunchedEffect(intent) {
                 playerVM?.let { vm ->
@@ -98,6 +97,32 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+
+            // Unauthorized Dialog - shown when account is disabled (401)
+            SpotixeDialog(
+                visible = showUnauthorizedDialog,
+                title = "Tài khoản bị vô hiệu hóa",
+                message = UnauthorizedEventManager.dialogMessage,
+                primaryButtonText = "OK",
+                onPrimaryClick = {
+                    // Handle logout and navigate to START
+                    UnauthorizedEventManager.handleLogout(this@MainActivity) {
+                        navController?.navigate(Graph.START) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onDismissRequest = {
+                    // Same action as primary button
+                    UnauthorizedEventManager.handleLogout(this@MainActivity) {
+                        navController?.navigate(Graph.START) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
 
             SpotiXeTheme {
                 SetSystemBars()
@@ -192,13 +217,6 @@ class MainActivity : ComponentActivity() {
                                         onRetry = { /* TODO: implement retry logic */ }
                                     )
                                 }
-                                composable(MainRoute.NotificationPermissionScreen) {
-                                    NotificationPermissionScreen(
-                                        screen = "DialogTestScreen",
-                                        messageId = "LocalTest"
-                                    )
-                                }
-
 
                                 // SongView (old - local data)
                                 composable(
