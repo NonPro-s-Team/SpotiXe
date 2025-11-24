@@ -2,8 +2,8 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { signInWithPopup, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth, googleProvider, analytics } from '../services/firebase';
 import { logEvent } from 'firebase/analytics';
-import { loginWithBackend, logoutFromBackend, validateToken } from '../services/authService';
-import { getUserData, clearAuthData, getToken } from '../utils/tokenStorage';
+import { loginWithBackend, logoutFromBackend } from '../services/authService';
+import { getUserData, clearAuthData } from '../utils/tokenStorage';
 
 // Create Auth Context
 const AuthContext = createContext();
@@ -61,31 +61,6 @@ export const AuthProvider = ({ children }) => {
           if (storedUser) {
             setBackendUser(storedUser);
           }
-
-          // ✅ Kiểm tra JWT token còn hạn không
-          const jwtToken = getToken();
-          if (jwtToken) {
-            console.log('🔍 Checking JWT token validity...');
-            const validation = await validateToken();
-            
-            if (!validation.valid) {
-              console.warn('⚠️ JWT token invalid or expired, logging out...');
-              // Token hết hạn hoặc không hợp lệ - Logout
-              await signOut(auth);
-              setUser(null);
-              setDomainAuthorized(false);
-              setBackendUser(null);
-              clearAuthData();
-              setLoading(false);
-              return;
-            }
-            
-            console.log('✅ JWT token is valid');
-            // Cập nhật backend user nếu có data mới từ /auth/me
-            if (validation.user) {
-              setBackendUser(validation.user);
-            }
-          }
         } else {
           // ❌ User KHÔNG được phép - Sign out ngay lập tức
           await signOut(auth);
@@ -108,37 +83,6 @@ export const AuthProvider = ({ children }) => {
     // Cleanup subscription
     return () => unsubscribe();
   }, []);
-
-  /**
-   * Kiểm tra token định kỳ mỗi 5 phút
-   * Tự động logout nếu token hết hạn
-   */
-  useEffect(() => {
-    if (!user || !domainAuthorized) return;
-
-    const checkTokenPeriodically = async () => {
-      const jwtToken = getToken();
-      if (!jwtToken) {
-        console.warn('⚠️ No JWT token found, logging out...');
-        await logout();
-        return;
-      }
-
-      const validation = await validateToken();
-      if (!validation.valid) {
-        console.warn('⚠️ JWT token expired during session, logging out...');
-        await logout();
-      }
-    };
-
-    // Kiểm tra ngay lập tức
-    checkTokenPeriodically();
-
-    // Kiểm tra mỗi 5 phút
-    const interval = setInterval(checkTokenPeriodically, 5 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [user, domainAuthorized]);
 
   /**
    * Sign in với Google
