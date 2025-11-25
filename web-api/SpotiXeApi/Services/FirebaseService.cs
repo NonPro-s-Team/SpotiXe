@@ -1,6 +1,8 @@
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Google.Apis.Auth.OAuth2;
+using Microsoft.EntityFrameworkCore;
+using SpotiXeApi.Entities;
 
 namespace SpotiXeApi.Services;
 
@@ -74,6 +76,45 @@ public class FirebaseService
             throw new UnauthorizedAccessException($"Firebase token verification failed: {ex.Message}", ex);
         }
     }
+
+    public async Task DisableFirebaseUser(string firebaseUid)
+    {
+        await FirebaseAuth.DefaultInstance.UpdateUserAsync(new UserRecordArgs
+        {
+            Uid = firebaseUid,
+            Disabled = true
+        });
+    }
+
+    public async Task EnableFirebaseUser(string firebaseUid)
+    {
+        await FirebaseAuth.DefaultInstance.UpdateUserAsync(new UserRecordArgs
+        {
+            Uid = firebaseUid,
+            Disabled = false
+        });
+    }
+
+    public async Task<UserRecord> GetFirebaseUser(string firebaseUid)
+    {
+        return await FirebaseAuth.DefaultInstance.GetUserAsync(firebaseUid);
+    }
+
+    public async Task<List<UserRecord>> GetAllFirebaseUsersAsync()
+    {
+        var users = new List<UserRecord>();
+
+        // Bắt đầu paging (mỗi lần Firebase trả tối đa 1000 user)
+        var pagedEnumerable = _firebaseAuth.ListUsersAsync(null);
+
+        await foreach (var user in pagedEnumerable)
+        {
+            users.Add(user);
+        }
+
+        return users;
+    }
+
 }
 
 /// <summary>

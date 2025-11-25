@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.spotixe.Data.Song
 import com.example.spotixe.MainRoute
@@ -114,15 +115,20 @@ fun SongViewScreen(
 
             //ScrubbableProgressBar
             ScrubbableProgressBar(
-                progress    = progress,
-                onSeek      = { p -> playerVM.seekTo(p) },
-                onSeekStart = { },
-                onSeekEnd   = { },
-                height      = 8.dp,
-                modifier    = Modifier
+                progress = progress,          // lấy trực tiếp từ PlayerViewModel
+                height = 6.dp,
+                activeColor = Color(0xFF1DB954),
+                inactiveColor = Color.Gray.copy(alpha = 0.5f),
+                onSeekEnd = { p ->
+                    // Seek 1 lần khi thả tay
+                    playerVM.seekTo(p)
+                },
+                modifier = Modifier
                     .fillMaxWidth()
-                    .zIndex(1f)
+                    .padding(vertical = 8.dp)
             )
+
+
             Row(Modifier.fillMaxWidth()) {
                 Text(
                     formatTimeMs(currentPosition),

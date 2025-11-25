@@ -45,7 +45,7 @@ fun GoogleSignInButtonFirebase(
     containerColor: Color = Color(0xFFE7ECF5),
     cornerRadius: Int = 12,
     onSuccess: (LoginResponse) -> Unit,
-    onError: (Throwable) -> Unit = {}
+    onError: (errorMessage: String, errorCode: String?) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val activity = context as Activity
@@ -75,7 +75,7 @@ fun GoogleSignInButtonFirebase(
             loading = false
             Log.e("GoogleSignIn", "Sign-in cancelled or failed")
             Toast.makeText(context, "Sign-in cancelled", Toast.LENGTH_SHORT).show()
-            onError(IllegalStateException("Sign-in cancelled"))
+            onError("Sign-in cancelled", null)
             return@rememberLauncherForActivityResult
         }
         
@@ -139,53 +139,57 @@ fun GoogleSignInButtonFirebase(
                                             } else {
                                                 loading = false
                                                 Log.e("GoogleSignIn", "Backend login failed: success=false")
-                                                Toast.makeText(context, "Backend login failed", Toast.LENGTH_LONG).show()
-                                                onError(Exception("Backend login failed"))
+                                                onError("Backend login failed", null)
                                             }
                                         } else {
                                             loading = false
                                             val errorMsg = response.errorBody()?.string() ?: "Backend error: ${response.code()}"
                                             Log.e("GoogleSignIn", "Backend API error: $errorMsg")
-                                            Toast.makeText(context, "Backend error: ${response.code()}", Toast.LENGTH_LONG).show()
-                                            onError(Exception(errorMsg))
+                                            onError(errorMsg, response.code().toString())
                                         }
                                     } else {
                                         loading = false
                                         Log.e("GoogleSignIn", "Firebase ID token is null")
-                                        Toast.makeText(context, "Firebase token error", Toast.LENGTH_LONG).show()
-                                        onError(Exception("Firebase ID token is null"))
+                                        onError("Firebase token error", null)
                                     }
                                 } catch (e: Exception) {
                                     loading = false
                                     Log.e("GoogleSignIn", "Exception in coroutine: ${e.message}", e)
-                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                                    onError(e)
+                                    onError(e.message ?: "Unknown error occurred", null)
                                 }
                             }
                         } else {
                             loading = false
                             Log.e("GoogleSignIn", "Firebase user is null after sign-in")
-                            Toast.makeText(context, "Firebase user error", Toast.LENGTH_LONG).show()
-                            onError(IllegalStateException("User is null after sign-in"))
+                            onError("Firebase user error", null)
                         }
                     } else {
                         loading = false
                         val exception = signInTask.exception
                         Log.e("GoogleSignIn", "Firebase sign-in failed: ${exception?.message}", exception)
-                        Toast.makeText(context, "Firebase sign-in failed: ${exception?.message}", Toast.LENGTH_LONG).show()
-                        onError(exception ?: RuntimeException("Firebase sign-in failed"))
+
+                        // Xác định loại lỗi từ Firebase
+                        val errorMessage = when {
+                            exception?.message?.contains("user account has been disabled", ignoreCase = true) == true ->
+                                "Your account has been disabled by an administrator. Please contact support."
+                            exception?.message?.contains("disabled", ignoreCase = true) == true ->
+                                "This account has been disabled. Please contact support for assistance."
+                            exception?.message?.contains("network", ignoreCase = true) == true ->
+                                "Network error. Please check your internet connection and try again."
+                            else -> exception?.message ?: "Firebase sign-in failed"
+                        }
+
+                        onError(errorMessage, null)
                     }
                 }
         } catch (e: ApiException) {
             loading = false
             Log.e("GoogleSignIn", "Google Sign-In API exception: ${e.statusCode} - ${e.message}", e)
-            Toast.makeText(context, "Google Sign-In failed: ${e.message}", Toast.LENGTH_LONG).show()
-            onError(e)
+            onError("Google Sign-In failed: ${e.message}", e.statusCode.toString())
         } catch (e: Exception) {
             loading = false
             Log.e("GoogleSignIn", "Unexpected exception: ${e.message}", e)
-            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-            onError(e)
+            onError(e.message ?: "Unexpected error occurred", null)
         }
     }
 

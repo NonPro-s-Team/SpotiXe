@@ -22,7 +22,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> FindByFirebaseUidAsync(string firebaseUid)
     {
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.FirebaseUid == firebaseUid && u.IsActive);
+            .FirstOrDefaultAsync(u => u.FirebaseUid == firebaseUid && u.IsActive == 1);
     }
 
     /// <summary>
@@ -31,7 +31,8 @@ public class UserRepository : IUserRepository
     public async Task<User?> FindByEmailAsync(string email)
     {
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+            //.FirstOrDefaultAsync(u => u.Email == email && u.IsActive == 1);
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     /// <summary>
@@ -40,7 +41,7 @@ public class UserRepository : IUserRepository
     public async Task<User?> FindByPhoneNumberAsync(string phoneNumber)
     {
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber && u.IsActive);
+            .FirstOrDefaultAsync(u => u.PhoneNumber == phoneNumber && u.IsActive == 1);
     }
 
     /// <summary>
@@ -79,7 +80,7 @@ public class UserRepository : IUserRepository
     public async Task<User> CreateAsync(User user)
     {
         // Set giá trị mặc định
-        user.IsActive = true;
+        user.IsActive = 1UL;
         user.CreatedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
 
@@ -105,6 +106,6 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByIdAsync(long userId)
     {
         return await _context.Users
-            .FirstOrDefaultAsync(u => u.UserId == userId && u.IsActive);
+            .FirstOrDefaultAsync(u => u.UserId == userId && u.IsActive == 1);
     }
 }

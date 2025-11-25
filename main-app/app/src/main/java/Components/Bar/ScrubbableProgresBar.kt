@@ -1,11 +1,16 @@
-// Components/Bar/ScrubbableProgressBar.kt
 package Components.Bar
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.drag
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -18,38 +23,80 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ScrubbableProgressBar(
-    progress: Float,
-    onSeek: (Float) -> Unit,
-    onSeekStart: (() -> Unit)? = null,
-    onSeekEnd:   (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    height: Dp = 8.dp,
-    activeColor: Color = Color(0xFF1DB954),
-    inactiveColor: Color = Color.Black.copy(alpha = 0.2f)
+    progress: Float,
+    height: Dp,
+    activeColor: Color,
+    inactiveColor: Color,
+    onSeekPreview: ((Float) -> Unit)? = null,
+    onSeekEnd: ((Float) -> Unit)? = null
 ) {
-    var widthPx by remember { mutableStateOf(0f) }
+    var barSize by remember { mutableStateOf(Size.Zero) }
+    var isDragging by remember { mutableStateOf(false) }
+
+    var internalProgress by remember {
+        mutableFloatStateOf(progress.coerceIn(0f, 1f))
+    }
+
+    LaunchedEffect(progress, isDragging) {
+        if (!isDragging) {
+            internalProgress = progress.coerceIn(0f, 1f)
+        }
+    }
+
+    val visualProgress by animateFloatAsState(
+        targetValue = internalProgress,
+        animationSpec = tween(
+            durationMillis = 120,
+            easing = LinearOutSlowInEasing
+        ),
+        label = "scrub-progress"
+    )
 
     Box(
         modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)               // hit-area lớn
             .height(height)
-            .onGloballyPositioned { widthPx = it.size.width.toFloat() }
-            .pointerInput(widthPx) {
+            .fillMaxWidth()
+            .onGloballyPositioned { layout ->
+                barSize = Size(
+                    width = layout.size.width.toFloat(),
+                    height = layout.size.height.toFloat()
+                )
+            }
+            .pointerInput(Unit) {
                 awaitEachGesture {
                     val down = awaitFirstDown()
-                    if (widthPx > 0f) {
-                        onSeekStart?.invoke()
-                        onSeek((down.position.x / widthPx).coerceIn(0f, 1f))
+
+                    if (barSize.width <= 0f) return@awaitEachGesture
+                    isDragging = true
+
+                    // ⭐ NHẤN ĐỂ TUA — chuyển đổi x → progress ngay lập tức
+                    fun positionToProgress(x: Float): Float {
+                        return (x / barSize.width).coerceIn(0f, 1f)
                     }
+
+                    // Set ngay progress khi user chạm (tap-to-seek)
+                    internalProgress = positionToProgress(down.position.x)
+                    onSeekPreview?.invoke(internalProgress)
+
+                    val startX = down.position.x
+                    val startProgress = internalProgress
+
+                    fun deltaToProgress(deltaX: Float): Float {
+                        val delta = deltaX / barSize.width
+                        return (startProgress + delta).coerceIn(0f, 1f)
+                    }
+
                     drag(down.id) { change ->
-                        if (widthPx > 0f) {
-                            val p = (change.position.x / widthPx).coerceIn(0f, 1f)
-                            onSeek(p)
-                        }
-                        change.consume()            // nuốt pointer để không rơi lên cha
+                        val deltaX = change.position.x - startX
+                        val newP = deltaToProgress(deltaX)
+                        internalProgress = newP
+                        onSeekPreview?.invoke(newP)
+                        change.consume()
                     }
-                    onSeekEnd?.invoke()
+
+                    isDragging = false
+                    onSeekEnd?.invoke(internalProgress)
                 }
             }
             .background(inactiveColor, RoundedCornerShape(percent = 50))
@@ -57,7 +104,7 @@ fun ScrubbableProgressBar(
         Box(
             Modifier
                 .fillMaxHeight()
-                .fillMaxWidth(progress.coerceIn(0f, 1f))
+                .fillMaxWidth(visualProgress)
                 .background(activeColor, RoundedCornerShape(percent = 50))
         )
     }

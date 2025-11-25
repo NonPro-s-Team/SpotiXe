@@ -28,6 +28,7 @@ import coil.compose.AsyncImage
 import com.example.spotixe.R
 import com.example.spotixe.Data.model.Song
 import com.example.spotixe.player.PlayerViewModel
+import com.example.spotixe.player.rememberPlayerVMActivity
 import com.example.spotixe.viewmodel.SongViewModel
 
 @Composable
@@ -38,7 +39,7 @@ fun ApiSongViewScreen(
 ) {
     val context = LocalContext.current
     val songViewModel = remember { SongViewModel(context) }
-    
+//    val playerVM = rememberPlayerVMActivity()
     var song by remember { mutableStateOf<Song?>(null) }
     var artistName by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -197,14 +198,30 @@ fun ApiSongViewScreen(
 
                         // Progress slider
                         ScrubbableProgressBar(
-                            progress    = progress,
-                            onSeek      = { p -> playerViewModel.seekTo(p) },
-                            onSeekStart = { },
-                            onSeekEnd   = { },
-                            height      = 8.dp,
-                            modifier    = Modifier
+                            progress = progress,          // lấy trực tiếp từ PlayerViewModel
+                            height = 6.dp,
+                            activeColor = Color(0xFF1DB954),
+                            inactiveColor = Color.Gray.copy(alpha = 0.5f),
+                            onSeekEnd = { p ->
+                                // 1. Tua đến vị trí mới
+                                playerViewModel.seekTo(p)
+
+                                // 2. Nếu đang pause thì play lại bài hiện tại
+                                if (!isPlaying) {
+                                    val targetSong = song!!
+                                    val playing = currentSong
+                                    if (playing?.songId == targetSong.songId) {
+                                        // Đúng bài hiện tại -> chỉ cần resume
+                                        playerViewModel.togglePlayPause()
+                                    } else {
+                                        // Lỡ đang pause ở bài khác -> play bài này
+                                        playerViewModel.playSong(targetSong)
+                                    }
+                                }
+                            },
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .zIndex(1f)
+                                .padding(vertical = 8.dp)
                         )
 
                         // Time labels

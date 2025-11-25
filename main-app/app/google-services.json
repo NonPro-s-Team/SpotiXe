@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "814326272937-6dve128m1ogspcrgvphjih75rvpvfvdv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.spotixe",
+            "certificate_hash": "d888c07341ae17cd24a6b732552f0d814b753836"
+          }
+        },
+        {
+          "client_id": "814326272937-vrk9tngjkom2d4qm5euf0qckgavk68lv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.spotixe",
+            "certificate_hash": "c0e9876d6654ee6cf0f5ab227f49f47d12c46ea3"
+          }
+        },
+        {
           "client_id": "814326272937-an4u5sk1ha7i2obmo6pmve43td63o1pq.apps.googleusercontent.com",
           "client_type": 3
         }

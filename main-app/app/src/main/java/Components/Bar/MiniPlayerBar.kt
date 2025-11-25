@@ -31,64 +31,67 @@ import com.example.spotixe.Data.model.Song
 fun MiniPlayerBar(
     playerViewModel: PlayerViewModel,
     onOpenSongView: () -> Unit,
-    onSeek: (Float) -> Unit,
-    onSeekStart: () -> Unit,
-    onSeekEnd: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Collect state from the ViewModel using delegated properties with explicit initial values
     val currentSong by playerViewModel.currentSong.collectAsState(initial = null as Song?)
     val isPlaying by playerViewModel.isPlaying.collectAsState(initial = false)
     val progress by playerViewModel.progress.collectAsState(initial = 0f)
 
-    // Only show if there's a song playing
     val song = currentSong ?: return
 
     Column(
         modifier
             .fillMaxWidth()
-            .background(Color(0xFF1E1E1E), shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+            .background(
+                Color(0xFF1E1E1E),
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+            )
     ) {
+        // 🔹 Chỉ phần "nội dung" phía trên mới click mở full view
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .padding(horizontal = 12.dp)
-                .clickable { onOpenSongView() },
+                .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Cover image from API
-            AsyncImage(
-                model = song.coverImageUrl,
-                contentDescription = song.title,
+            // Bọc phần cover + text trong 1 Row riêng có clickable
+            Row(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(6.dp)),
-                contentScale = ContentScale.Crop
-            )
-            
-            Spacer(Modifier.width(10.dp))
+                    .weight(1f)
+                    .clickable { onOpenSongView() },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = song.coverImageUrl,
+                    contentDescription = song.title,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(6.dp)),
+                    contentScale = ContentScale.Crop
+                )
 
-            // Song info
-            Column(Modifier.weight(1f)) {
-                Text(
-                    text = song.title,
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = song.artistName ?: "Artist",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Spacer(Modifier.width(10.dp))
+
+                Column {
+                    Text(
+                        text = song.title,
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = song.artistName ?: "Artist",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
-            
-            // Play/Pause button
+
             IconButton(onClick = { playerViewModel.togglePlayPause() }) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -99,14 +102,30 @@ fun MiniPlayerBar(
         }
 
         ScrubbableProgressBar(
-            progress = progress,
-            onSeek = onSeek,
-            onSeekStart = onSeekStart,
-            onSeekEnd = onSeekEnd,
-            height = 8.dp,
+            progress = progress,          // lấy trực tiếp từ PlayerViewModel
+            height = 6.dp,
+            activeColor = Color(0xFF1DB954),
+            inactiveColor = Color.Gray.copy(alpha = 0.5f),
+            onSeekEnd = { p ->
+                // 1. Tua đến vị trí mới
+                playerViewModel.seekTo(p)
+
+                // 2. Nếu đang pause thì play lại bài hiện tại
+                if (!isPlaying) {
+                    val targetSong = song!!
+                    val playing = currentSong
+                    if (playing?.songId == targetSong.songId) {
+                        // Đúng bài hiện tại -> chỉ cần resume
+                        playerViewModel.togglePlayPause()
+                    } else {
+                        // Lỡ đang pause ở bài khác -> play bài này
+                        playerViewModel.playSong(targetSong)
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .zIndex(1f)
+                .padding(vertical = 8.dp)
         )
     }
 }

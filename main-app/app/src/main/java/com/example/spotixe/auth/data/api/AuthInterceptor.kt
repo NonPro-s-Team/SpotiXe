@@ -15,7 +15,10 @@ class AuthInterceptor(private val context: Context) : Interceptor {
         val originalRequest = chain.request()
         
         // Skip adding JWT for auth/login endpoint (it uses Firebase token)
-        if (originalRequest.url.encodedPath.contains("/auth/login")) {
+        if (originalRequest.url.encodedPath.contains("/auth/login") ||
+            originalRequest.url.encodedPath.contains("/auth/request-otp") ||
+            originalRequest.url.encodedPath.contains("/auth/verify-otp")
+        ) {
             return chain.proceed(originalRequest)
         }
         

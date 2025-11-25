@@ -3,6 +3,7 @@ package com.example.spotixe.Pages.Pages.SignUpPages
 import Components.Buttons.BackButton
 import Components.Buttons.GoogleSignInButtonFirebase
 import Components.Layout.OtpInputField
+import Components.Layout.SpotixeDialog
 import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -59,6 +60,24 @@ fun Sign_UpPhone2Screen(navController: NavController) {
     var isLoading by rememberSaveable { mutableStateOf(false) }
     var isResending by rememberSaveable { mutableStateOf(false) }
     var resendCountdown by rememberSaveable { mutableStateOf(0) }
+
+    // State để hiển thị dialog cho Google Sign-In
+    var showGoogleErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var googleErrorDialogMessage by rememberSaveable { mutableStateOf("") }
+
+    // Google Sign-In Error Dialog
+    SpotixeDialog(
+        visible = showGoogleErrorDialog,
+        title = "Lỗi đăng nhập Google",
+        message = googleErrorDialogMessage,
+        primaryButtonText = "OK",
+        onPrimaryClick = {
+            showGoogleErrorDialog = false
+        },
+        onDismissRequest = {
+            showGoogleErrorDialog = false
+        }
+    )
 
     BoxWithConstraints(
         modifier = Modifier
@@ -139,7 +158,7 @@ fun Sign_UpPhone2Screen(navController: NavController) {
                 otp = otpValue,
                 count = 6,
                 mask = true,
-                boxSize = otpBoxSize,      // responsive box size
+                boxSize = otpBoxSize,
                 textSize = labelFontSize.sp,
                 onFilled = { code ->
                     if (code.length == 6) {
@@ -286,12 +305,10 @@ fun Sign_UpPhone2Screen(navController: NavController) {
                         launchSingleTop = true
                     }
                 },
-                onError = { error ->
-                    Toast.makeText(
-                        context,
-                        "Sign in failed: ${error.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                onError = { errorMessage, errorCode ->
+                    // Hiển thị dialog lỗi cho Google Sign-In
+                    googleErrorDialogMessage = errorMessage
+                    showGoogleErrorDialog = true
                 }
             )
 

@@ -2,71 +2,146 @@ package com.example.spotixe.Pages.Pages.SignInPages
 
 import Components.Buttons.BackButton
 import Components.Buttons.GoogleSignInButtonFirebase
+import android.app.Application
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.spotixe.AuthRoute
 import com.example.spotixe.MainRoute
 import com.example.spotixe.Graph.AUTH
 import com.example.spotixe.R
+import com.example.spotixe.auth.data.repository.AuthViewModelFactory
+import com.example.spotixe.auth.viewmodel.AuthViewModel
+import com.example.spotixe.viewmodel.SignUpViewModel
+import Components.Layout.SpotixeDialog
 
 @Composable
 fun Sign_in1Screen(
     navController: NavController
 ) {
     val green = Color(0xFF58BA47)
+    val context = LocalContext.current
 
-    var emailorphone by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+    // Init SignUpViewModel
+    LaunchedEffect(Unit) {
+        SignUpViewModel.init(context)
+    }
+
+    var email by rememberSaveable { mutableStateOf("") }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
+
+    // AuthViewModel để gọi API request OTP
+    val authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(context.applicationContext as Application)
+    )
+    val otpState by authViewModel.otpState.collectAsState()
+    val otpErrorMessage by authViewModel.otpErrorMessage.collectAsState()
+
+    // State để hiển thị dialog
+    var showErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var errorDialogMessage by rememberSaveable { mutableStateOf("") }
+
+    // State để hiển thị dialog cho Google Sign-In
+    var showGoogleErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var googleErrorDialogMessage by rememberSaveable { mutableStateOf("") }
+
+    // Lắng nghe kết quả request OTP
+    LaunchedEffect(otpState) {
+        when (otpState) {
+            "success" -> {
+                isLoading = false
+                Toast.makeText(context, "OTP sent to your email!", Toast.LENGTH_SHORT).show()
+                // Lưu email để dùng ở màn hình Sign_in2
+                SignUpViewModel.saveEmail(email)
+                // Chuyển sang màn hình nhập OTP
+                navController.navigate(AuthRoute.SignIn2)
+            }
+            "error" -> {
+                // Hiển thị dialog với message từ API
+                isLoading = false
+                errorDialogMessage = otpErrorMessage ?: "Failed to send OTP"
+                showErrorDialog = true
+            }
+            null -> {
+                // Không làm gì khi null (trạng thái ban đầu)
+            }
+        }
+    }
+
+    // Error Dialog
+    SpotixeDialog(
+        visible = showErrorDialog,
+        title = "Lỗi đăng nhập",
+        message = errorDialogMessage,
+        primaryButtonText = "OK",
+        onPrimaryClick = {
+            showErrorDialog = false
+            authViewModel.clearOtpError()
+        },
+        onDismissRequest = {
+            showErrorDialog = false
+            authViewModel.clearOtpError()
+        }
+    )
+
+    // Google Sign-In Error Dialog
+    SpotixeDialog(
+        visible = showGoogleErrorDialog,
+        title = "Lỗi đăng nhập Google",
+        message = googleErrorDialogMessage,
+        primaryButtonText = "OK",
+        onPrimaryClick = {
+            showGoogleErrorDialog = false
+        },
+        onDismissRequest = {
+            showGoogleErrorDialog = false
+        }
+    )
 
     BoxWithConstraints(
         modifier = Modifier
@@ -76,19 +151,15 @@ fun Sign_in1Screen(
         val screenHeight = maxHeight
         val screenWidth = maxWidth
 
-        // --- Reduced Responsive sizes (optimized) ---
-        val logoHeight = screenHeight * 0.15f            // giảm từ 0.23f
-        val titleFontSize = screenWidth.value * 0.070f    // giảm từ 0.085f
+        val logoHeight = screenHeight * 0.15f
+        val titleFontSize = screenWidth.value * 0.070f
         val labelFontSize = screenWidth.value * 0.040f
         val inputFontSize = screenWidth.value * 0.036f
-
-        val buttonWidth = screenWidth * 0.70f             // tăng chiều rộng cho đẹp
-        val buttonHeight = screenHeight * 0.055f          // giảm chiều cao button
-
+        val buttonWidth = screenWidth * 0.70f
+        val buttonHeight = screenHeight * 0.055f
         val smallSpacer = screenHeight * 0.015f
         val normalSpacer = screenHeight * 0.020f
-        val bigSpacer = screenHeight * 0.035f              // giảm 30% khoảng cách
-        // ---------------------------------------------------
+        val bigSpacer = screenHeight * 0.035f
 
         Row(
             modifier = Modifier
@@ -104,7 +175,7 @@ fun Sign_in1Screen(
                 .fillMaxSize()
                 .padding(horizontal = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween // KEY: auto balance các phần
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
 
             // ========= TOP SECTION =========
@@ -134,7 +205,7 @@ fun Sign_in1Screen(
 
                 // EMAIL LABEL
                 Text(
-                    text = "Email or Phone number",
+                    text = "Email",
                     color = green,
                     fontSize = labelFontSize.sp,
                     modifier = Modifier.align(Alignment.Start)
@@ -142,9 +213,13 @@ fun Sign_in1Screen(
 
                 Spacer(modifier = Modifier.height(smallSpacer))
 
+                // Validate Email
+                val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")
+                val isEmailValid = emailRegex.matches(email)
+
                 TextField(
-                    value = emailorphone,
-                    onValueChange = { emailorphone = it },
+                    value = email,
+                    onValueChange = { email = it },
                     textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color(0xFF444444),
@@ -155,52 +230,27 @@ fun Sign_in1Screen(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp)),
+                    placeholder = { Text("Enter your email", color = Color.LightGray) }
                 )
+
+                if (email.isNotEmpty() && !isEmailValid) {
+                    Text(
+                        text = "Please enter a valid email address.",
+                        color = Color.Red,
+                        fontSize = (inputFontSize * 0.75).sp,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(normalSpacer))
 
-                // PASSWORD LABEL
                 Text(
-                    text = "Password",
-                    color = green,
-                    fontSize = labelFontSize.sp,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Spacer(modifier = Modifier.height(smallSpacer))
-
-                TextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color(0xFF444444),
-                        unfocusedContainerColor = Color(0xFF444444),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        cursorColor = green
-                    ),
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        val icon = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(icon, null, tint = green)
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                )
-
-                Spacer(modifier = Modifier.height(smallSpacer))
-
-                Text(
-                    "Forgot password",
-                    color = Color.White,
-                    fontSize = (labelFontSize * 0.9f).sp,
+                    text = "We'll send you a verification code to this email.",
+                    color = Color.Gray,
+                    fontSize = (inputFontSize * 0.9f).sp,
                     fontStyle = FontStyle.Italic,
-                    modifier = Modifier.align(Alignment.Start)
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -209,11 +259,14 @@ fun Sign_in1Screen(
 
                 Button(
                     onClick = {
-                        if (emailorphone.isNotEmpty() && password.isNotEmpty()) {
-                            navController.navigate(MainRoute.Home) {
-                                popUpTo(AUTH) { inclusive = true }
-                                launchSingleTop = true
-                            }
+                        if (email.isEmpty()) {
+                            Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
+                        } else if (!email.contains("@")) {
+                            Toast.makeText(context, "Please enter a valid email", Toast.LENGTH_SHORT).show()
+                        } else {
+                            // Gọi API request OTP
+                            isLoading = true
+                            authViewModel.requestOtp(email)
                         }
                     },
                     modifier = Modifier
@@ -222,9 +275,18 @@ fun Sign_in1Screen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = green,
                         contentColor = Color.Black
-                    )
+                    ),
+                    enabled = !isLoading
                 ) {
-                    Text("Sign in", fontSize = (labelFontSize * 1.1f).sp)
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.Green,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Continue", fontSize = (labelFontSize * 1.1f).sp)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(normalSpacer))
@@ -248,7 +310,11 @@ fun Sign_in1Screen(
                             launchSingleTop = true
                         }
                     },
-                    onError = {}
+                    onError = { errorMessage, errorCode ->
+                        // Hiển thị dialog lỗi cho Google Sign-In
+                        googleErrorDialogMessage = errorMessage
+                        showGoogleErrorDialog = true
+                    }
                 )
             }
 
@@ -273,6 +339,3 @@ fun Sign_in1Screen(
         }
     }
 }
-
-
-

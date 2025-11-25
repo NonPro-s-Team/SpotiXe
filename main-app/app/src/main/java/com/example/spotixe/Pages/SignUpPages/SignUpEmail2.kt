@@ -1,506 +1,1 @@
-package com.example.spotixe.Pages.Pages.SignUpPages
-
-import Components.Buttons.BackButton
-import Components.Buttons.GoogleSignInButtonFirebase
-import Components.isValidPassword
-import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import com.example.spotixe.AuthRoute
-import com.example.spotixe.MainRoute
-import com.example.spotixe.Graph.AUTH
-import com.example.spotixe.R
-import com.example.spotixe.viewmodel.SignUpViewModel
-import com.google.firebase.auth.FirebaseAuth
-
-@Composable
-fun Sign_UpEmail2Screen(
-    navController: NavController
-) {
-    val green = Color(0xFF58BA47)
-    val context = LocalContext.current
-    val firebaseAuth = FirebaseAuth.getInstance()
-
-    // Retrieve email from SignUpViewModel singleton
-    val email = SignUpViewModel.loadEmail()
-
-    var password by rememberSaveable { mutableStateOf("") }
-    var repassword by rememberSaveable { mutableStateOf("") }
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
-    var rePasswordVisible by rememberSaveable { mutableStateOf(false) }
-    var isLoading by rememberSaveable { mutableStateOf(false) }
-    var isVerificationEmailSent by rememberSaveable { mutableStateOf(false) }
-
-    val isPasswordValid = isValidPassword(password)
-    val isRePasswordMatch = repassword.isNotEmpty() && repassword == password
-
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF121212))
-    ) {
-        val screenHeight = maxHeight
-        val screenWidth = maxWidth
-
-        // -----------------------------------------
-        // Responsive Dimension Values
-        // -----------------------------------------
-        val logoHeight = screenHeight * 0.22f
-        val titleFontSize = screenWidth.value * 0.085f     // ~35sp
-        val labelFontSize = screenWidth.value * 0.045f     // 16–18sp
-        val inputFontSize = screenWidth.value * 0.040f     // ~16sp
-        val warningFontSize = screenWidth.value * 0.030f   // ~12–13sp
-
-        val buttonWidth = screenWidth * 0.45f
-        val buttonHeight = screenHeight * 0.065f
-
-        val smallSpacer = screenHeight * 0.02f
-        val normalSpacer = screenHeight * 0.03f
-        val bigSpacer = screenHeight * 0.05f
-
-
-        // -----------------------------------------
-        // Back Button
-        // -----------------------------------------
-        Row(
-            modifier = Modifier
-                .padding(start = 15.dp)
-                .statusBarsPadding(),
-            horizontalArrangement = Arrangement.Start
-        ) {
-            BackButton(navController)
-        }
-
-
-        // -----------------------------------------
-        // Content Layout
-        // -----------------------------------------
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 30.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            Spacer(modifier = Modifier.height(bigSpacer))
-
-            Image(
-                painter = painterResource(R.drawable.spotixe_logo),
-                contentDescription = null,
-                modifier = Modifier.height(logoHeight)
-            )
-
-            Spacer(modifier = Modifier.height(smallSpacer))
-
-            Text(
-                "Create your account",
-                fontSize = titleFontSize.sp,
-                fontWeight = FontWeight.Bold,
-                color = green,
-                textAlign = TextAlign.Center
-            )
-
-
-            // ------------------ PASSWORD ------------------
-            if (!isVerificationEmailSent) {
-                Spacer(modifier = Modifier.height(normalSpacer / 2))
-
-                Text(
-                    text = "Password",
-                    color = green,
-                    fontSize = labelFontSize.sp,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Spacer(modifier = Modifier.height(smallSpacer / 1.3f))
-
-                Column {
-                    TextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF444444),
-                            unfocusedContainerColor = Color(0xFF444444),
-                            focusedIndicatorColor = if (isPasswordValid) Color.Transparent else Color.Red,
-                            unfocusedIndicatorColor = if (isPasswordValid) Color.Transparent else Color.Red,
-                            focusedTextColor = green,
-                            unfocusedTextColor = green,
-                            cursorColor = green
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp)),
-                        placeholder = { Text("Enter password", color = Color.LightGray) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Next
-                        ),
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(
-                                    imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                    contentDescription = null,
-                                    tint = green
-                                )
-                            }
-                        }
-                    )
-
-                    if (!isPasswordValid && password.isNotEmpty()) {
-                        Text(
-                            text = "Password must be at least 8 characters, include uppercase, lowercase and number",
-                            color = Color.Red,
-                            fontSize = warningFontSize.sp,
-                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-                        )
-                    }
-                }
-
-
-                // ------------------ CONFIRM PASSWORD ------------------
-                Spacer(modifier = Modifier.height(normalSpacer / 2))
-
-                Text(
-                    text = "Confirm your password",
-                    color = green,
-                    fontSize = labelFontSize.sp,
-                    modifier = Modifier.align(Alignment.Start)
-                )
-
-                Spacer(modifier = Modifier.height(smallSpacer / 1.3f))
-
-                Column {
-                    TextField(
-                        value = repassword,
-                        onValueChange = { repassword = it },
-                        textStyle = TextStyle(color = green, fontSize = inputFontSize.sp),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color(0xFF444444),
-                            unfocusedContainerColor = Color(0xFF444444),
-                            focusedIndicatorColor = if (isRePasswordMatch || repassword.isEmpty()) Color.Transparent else Color.Red,
-                            unfocusedIndicatorColor = if (isRePasswordMatch || repassword.isEmpty()) Color.Transparent else Color.Red,
-                            focusedTextColor = green,
-                            unfocusedTextColor = green,
-                            cursorColor = green
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp)),
-                        placeholder = { Text("Re-enter password", color = Color.LightGray) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Done
-                        ),
-                        visualTransformation = if (rePasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { rePasswordVisible = !rePasswordVisible }) {
-                                Icon(
-                                    imageVector = if (rePasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                    contentDescription = null,
-                                    tint = green
-                                )
-                            }
-                        }
-                    )
-
-                    if (!isRePasswordMatch && repassword.isNotEmpty()) {
-                        Text(
-                            text = "Passwords do not match",
-                            color = Color.Red,
-                            fontSize = warningFontSize.sp,
-                            modifier = Modifier.padding(top = 4.dp, start = 4.dp)
-                        )
-                    }
-                }
-
-
-                // ------------------ SIGN UP BUTTON ------------------
-                Spacer(modifier = Modifier.height(bigSpacer))
-
-                Button(
-                    onClick = {
-                        when {
-                            email.isEmpty() -> {
-                                Toast.makeText(context, "Email is missing. Please go back and enter your email again.", Toast.LENGTH_SHORT).show()
-                            }
-                            password.isEmpty() ->
-                                Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
-
-                            !isPasswordValid ->
-                                Toast.makeText(context, "Password must be at least 8 characters, include uppercase, lowercase and number", Toast.LENGTH_LONG).show()
-
-                            repassword.isEmpty() ->
-                                Toast.makeText(context, "Please confirm your password", Toast.LENGTH_SHORT).show()
-
-                            !isRePasswordMatch ->
-                                Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
-
-                            else -> {
-                                isLoading = true
-                                firebaseAuth.createUserWithEmailAndPassword(email, password)
-                                    .addOnSuccessListener { authResult ->
-                                        val currentUser = authResult.user
-                                        if (currentUser != null) {
-                                            currentUser.sendEmailVerification()
-                                                .addOnSuccessListener {
-                                                    isLoading = false
-                                                    isVerificationEmailSent = true
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Verification email sent. Please check your inbox and verify your email to continue.",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                }
-                                                .addOnFailureListener { e ->
-                                                    isLoading = false
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Failed to send verification email: ${e.message ?: "Unknown error"}",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
-                                        } else {
-                                            isLoading = false
-                                            Toast.makeText(context, "Account creation failed", Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-                                    .addOnFailureListener { e ->
-                                        isLoading = false
-                                        val errorMessage = when {
-                                            e.message?.contains("already in use") == true -> "This email is already registered"
-                                            e.message?.contains("invalid") == true -> "Invalid email address"
-                                            else -> e.message ?: "Sign up failed"
-                                        }
-                                        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-                                    }
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .width(buttonWidth)
-                        .height(buttonHeight),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = green,
-                        contentColor = Color.Black
-                    ),
-                    enabled = !isLoading
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            color = Color.Black,
-                            modifier = Modifier
-                                .width(20.dp)
-                                .height(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            text = "Sign up",
-                            fontSize = labelFontSize.sp
-                        )
-                    }
-                }
-            }
-
-
-            // ------------------ EMAIL VERIFICATION CHECK ------------------
-            if (isVerificationEmailSent) {
-                Spacer(modifier = Modifier.height(bigSpacer))
-
-                Text(
-                    text = "Verification email sent!",
-                    color = Color(0xFFFFB700),
-                    fontSize = labelFontSize.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-
-                Spacer(modifier = Modifier.height(normalSpacer))
-
-                Text(
-                    text = "Please check your email inbox and click the verification link to activate your account.",
-                    color = green,
-                    fontSize = inputFontSize.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 10.dp)
-                )
-
-                Spacer(modifier = Modifier.height(bigSpacer))
-
-                Button(
-                    onClick = {
-                        isLoading = true
-                        val task = firebaseAuth.currentUser?.reload()
-                        if (task != null) {
-                            task.addOnSuccessListener {
-                                val isEmailVerified = firebaseAuth.currentUser?.isEmailVerified ?: false
-                                isLoading = false
-                                if (isEmailVerified) {
-                                    Toast.makeText(context, "Email verified! Account created successfully.", Toast.LENGTH_SHORT).show()
-                                    SignUpViewModel.clearData()  // Clear data after successful verification
-                                    navController.navigate(MainRoute.Home) {
-                                        popUpTo(AUTH) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                } else {
-                                    Toast.makeText(context, "Email not verified yet. Please check your inbox.", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                                .addOnFailureListener { e ->
-                                    isLoading = false
-                                    Toast.makeText(context, "Error checking verification: ${e.message ?: "Unknown error"}", Toast.LENGTH_SHORT).show()
-                                }
-                        } else {
-                            isLoading = false
-                            Toast.makeText(context, "User not found", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    modifier = Modifier
-                        .width(buttonWidth)
-                        .height(buttonHeight),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = green,
-                        contentColor = Color.Black
-                    ),
-                    enabled = !isLoading
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            color = Color.Black,
-                            modifier = Modifier
-                                .width(20.dp)
-                                .height(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            text = "I've verified my email",
-                            fontSize = labelFontSize.sp
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(normalSpacer))
-
-                Text(
-                    text = "Didn't receive the email? Check your spam folder or try signing up again.",
-                    color = Color.Gray,
-                    fontSize = (inputFontSize * 0.9f).sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp)
-                        .clickable {
-                            isVerificationEmailSent = false
-                            password = ""
-                            repassword = ""
-                            passwordVisible = false
-                            rePasswordVisible = false
-                        }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(bigSpacer))
-
-            Text(
-                text = buildAnnotatedString {
-                    append("Or ")
-                    withStyle(SpanStyle(color = Color.White)) { append("sign in") }
-                    append(" with")
-                },
-                color = green,
-                fontSize = inputFontSize.sp,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(normalSpacer))
-
-            GoogleSignInButtonFirebase(
-                onSuccess = {
-                    navController.navigate(MainRoute.Home) {
-                        popUpTo(AUTH) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onError = { error ->
-                    Toast.makeText(
-                        context,
-                        "Sign in failed: ${error.message ?: "Unknown error"}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            )
-
-            Spacer(modifier = Modifier.height(bigSpacer))
-
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(SpanStyle(color = green)) { append("Already have account?\n") }
-                    withStyle(SpanStyle(color = green)) { append("Click here to ") }
-                    withStyle(SpanStyle(color = Color.White, fontStyle = FontStyle.Italic)) { append("sign in") }
-                },
-                fontSize = labelFontSize.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.clickable {
-                    navController.navigate(AuthRoute.SignIn1)
-                }
-            )
-        }
-    }
-}
-
-
+package com.example.spotixe.Pages.Pages.SignUpPagesimport Components.Buttons.BackButtonimport Components.Buttons.GoogleSignInButtonFirebaseimport Components.Layout.OtpInputFieldimport Components.Layout.SpotixeDialogimport Components.isValidPasswordimport android.app.Applicationimport android.widget.Toastimport androidx.compose.foundation.Imageimport androidx.compose.foundation.backgroundimport androidx.compose.foundation.clickableimport androidx.compose.foundation.layout.Arrangementimport androidx.compose.foundation.layout.BoxWithConstraintsimport androidx.compose.foundation.layout.Columnimport androidx.compose.foundation.layout.Rowimport androidx.compose.foundation.layout.Spacerimport androidx.compose.foundation.layout.fillMaxSizeimport androidx.compose.foundation.layout.fillMaxWidthimport androidx.compose.foundation.layout.heightimport androidx.compose.foundation.layout.paddingimport androidx.compose.foundation.layout.sizeimport androidx.compose.foundation.layout.statusBarsPaddingimport androidx.compose.foundation.layout.widthimport androidx.compose.foundation.shape.RoundedCornerShapeimport androidx.compose.foundation.text.KeyboardOptionsimport androidx.compose.material.icons.Iconsimport androidx.compose.material.icons.filled.Visibilityimport androidx.compose.material.icons.filled.VisibilityOffimport androidx.compose.material3.Buttonimport androidx.compose.material3.ButtonDefaultsimport androidx.compose.material3.CircularProgressIndicatorimport androidx.compose.material3.Iconimport androidx.compose.material3.IconButtonimport androidx.compose.material3.Textimport androidx.compose.material3.TextFieldimport androidx.compose.material3.TextFieldDefaultsimport androidx.compose.runtime.Composableimport androidx.compose.runtime.LaunchedEffectimport androidx.compose.runtime.collectAsStateimport androidx.compose.runtime.getValueimport androidx.compose.runtime.mutableStateOfimport androidx.compose.runtime.rememberimport androidx.compose.runtime.saveable.rememberSaveableimport androidx.compose.runtime.setValueimport androidx.compose.ui.platform.LocalContextimport androidx.compose.ui.Alignmentimport androidx.compose.ui.Modifierimport androidx.compose.ui.draw.clipimport androidx.compose.ui.graphics.Colorimport androidx.compose.ui.res.painterResourceimport androidx.compose.ui.text.SpanStyleimport androidx.compose.ui.text.TextStyleimport androidx.compose.ui.text.buildAnnotatedStringimport androidx.compose.ui.text.font.FontStyleimport androidx.compose.ui.text.font.FontWeightimport androidx.compose.ui.text.input.ImeActionimport androidx.compose.ui.text.input.KeyboardTypeimport androidx.compose.ui.text.input.PasswordVisualTransformationimport androidx.compose.ui.text.input.VisualTransformationimport androidx.compose.ui.text.style.TextAlignimport androidx.compose.ui.text.withStyleimport androidx.compose.ui.unit.dpimport androidx.compose.ui.unit.spimport androidx.lifecycle.viewmodel.compose.viewModelimport androidx.navigation.NavControllerimport com.example.spotixe.AuthRouteimport com.example.spotixe.MainRouteimport com.example.spotixe.Graph.AUTHimport com.example.spotixe.Rimport com.example.spotixe.auth.data.repository.AuthViewModelFactoryimport com.example.spotixe.auth.viewmodel.AuthViewModelimport com.example.spotixe.viewmodel.SignUpViewModelimport com.google.firebase.auth.FirebaseAuth@Composablefun Sign_UpEmail2Screen(    navController: NavController) {    val green = Color(0xFF58BA47)    val context = LocalContext.current    val email = SignUpViewModel.loadEmail()    val username = SignUpViewModel.loadUsername()    var otp by rememberSaveable { mutableStateOf("") }    var isLoading by rememberSaveable { mutableStateOf(false) }    // State để hiển thị dialog cho Google Sign-In    var showGoogleErrorDialog by rememberSaveable { mutableStateOf(false) }    var googleErrorDialogMessage by rememberSaveable { mutableStateOf("") }    // State để hiển thị dialog cho Verify OTP Error    var showVerifyOtpErrorDialog by rememberSaveable { mutableStateOf(false) }    var verifyOtpErrorMessage by rememberSaveable { mutableStateOf("") }    val authViewModel: AuthViewModel = viewModel (        factory = AuthViewModelFactory(context.applicationContext as Application)    )    val otpState = remember { mutableStateOf("") }    val verifyState by authViewModel.verifyState.collectAsState()    val verifyOtpError by authViewModel.verifyOtpError.collectAsState()    // Lắng nghe lỗi verify OTP    LaunchedEffect(verifyOtpError) {        verifyOtpError?.let { errorMsg ->            isLoading = false            verifyOtpErrorMessage = errorMsg            showVerifyOtpErrorDialog = true        }    }    // Google Sign-In Error Dialog    SpotixeDialog(        visible = showGoogleErrorDialog,        title = "Lỗi đăng nhập Google",        message = googleErrorDialogMessage,        primaryButtonText = "OK",        onPrimaryClick = {            showGoogleErrorDialog = false        },        onDismissRequest = {            showGoogleErrorDialog = false        }    )    // Verify OTP Error Dialog    SpotixeDialog(        visible = showVerifyOtpErrorDialog,        title = "Lỗi xác thực OTP",        message = verifyOtpErrorMessage,        primaryButtonText = "OK",        onPrimaryClick = {            showVerifyOtpErrorDialog = false            authViewModel.clearVerifyOtpError()        },        onDismissRequest = {            showVerifyOtpErrorDialog = false            authViewModel.clearVerifyOtpError()        }    )    BoxWithConstraints(        modifier = Modifier            .fillMaxSize()            .background(Color(0xFF121212))    ) {        val screenHeight = maxHeight        val screenWidth = maxWidth        val logoHeight = screenHeight * 0.22f        val titleFontSize = screenWidth.value * 0.085f        val labelFontSize = screenWidth.value * 0.045f        val inputFontSize = screenWidth.value * 0.040f        val bigSpacer = screenHeight * 0.05f        val normalSpacer = screenHeight * 0.03f        val smallSpacer = screenHeight * 0.02f        Row(            modifier = Modifier                .padding(start = 15.dp)                .statusBarsPadding(),        ) {            BackButton(navController)        }        Column(            modifier = Modifier                .fillMaxSize()                .padding(horizontal = 30.dp),            horizontalAlignment = Alignment.CenterHorizontally        ) {            Spacer(modifier = Modifier.height(bigSpacer))            Image(                painter = painterResource(R.drawable.spotixe_logo),                contentDescription = null,                modifier = Modifier.height(logoHeight)            )            Spacer(modifier = Modifier.height(smallSpacer))            Text(                "Verify Your Email",                fontSize = titleFontSize.sp,                fontWeight = FontWeight.Bold,                color = green,                textAlign = TextAlign.Center            )            Spacer(modifier = Modifier.height(normalSpacer))            Text(                text = "We have sent a 6-digit OTP to:",                color = Color.White,                fontSize = inputFontSize.sp            )            Text(                text = email,                color = green,                fontSize = (inputFontSize * 1.2f).sp,                fontWeight = FontWeight.Bold,                textAlign = TextAlign.Center            )            Spacer(modifier = Modifier.height(normalSpacer))            Text(                text = "Enter the 6-digit code",                color = green,                fontSize = labelFontSize.sp,                modifier = Modifier.align(Alignment.Start)            )            Spacer(modifier = Modifier.height(smallSpacer))            OtpInputField(                otp = remember { mutableStateOf("") },                count = 6,                mask = false,                boxSize = 48.dp,                textSize = 20.sp,                onFilled = { code ->                    otp = code                }            )            Spacer(modifier = Modifier.height(normalSpacer))            // ------------------ VERIFY BUTTON ------------------            Button(                onClick = {                    if (otp.length < 6) {                        Toast.makeText(context, "Please enter full 6-digit OTP", Toast.LENGTH_SHORT).show()                    } else {                        // TODO: Gọi API verify OTP ở đây                        // Toast.makeText(context, "Verify OTP clicked", Toast.LENGTH_SHORT).show()                        authViewModel.verifyOtp(email, otp, username)                        isLoading = true                    }                },                modifier = Modifier                    .width(screenWidth * 0.45f)                    .height(screenHeight * 0.065f),                colors = ButtonDefaults.buttonColors(                    containerColor = green,                    contentColor = Color.Black                ),                enabled = !isLoading            ) {                if (isLoading) {                    CircularProgressIndicator(                        color = Color.Black,                        modifier = Modifier.size(20.dp),                        strokeWidth = 2.dp                    )                } else {                    Text(text = "Verify", fontSize = labelFontSize.sp)                }            }            LaunchedEffect(verifyState) {                verifyState?.let { resp ->                    if (resp.success) {                        isLoading = false                        // Lưu JWT token và user data vào DataStore                        authViewModel.saveAuthDataFromOtp(resp)                        // Điều hướng sang Home                        navController.navigate(MainRoute.Home) {                            popUpTo(0) { inclusive = true }                        }                    }                }            }            Spacer(modifier = Modifier.height(normalSpacer))            // Resend OTP            Text(                text = "Didn't receive the code? Tap to resend.",                color = Color.Gray,                fontSize = inputFontSize.sp,                textAlign = TextAlign.Center,                modifier = Modifier                    .clickable {                        // Gọi API request OTP để gửi lại mã                        authViewModel.requestOtp(email)                        Toast.makeText(context, "OTP resent to your email", Toast.LENGTH_SHORT).show()                    }                    .padding(5.dp)            )            Spacer(modifier = Modifier.height(bigSpacer))            GoogleSignInButtonFirebase(                onSuccess = {                    navController.navigate(MainRoute.Home) {                        popUpTo(AUTH) { inclusive = true }                        launchSingleTop = true                    }                },                onError = { errorMessage, errorCode ->                    // Hiển thị dialog lỗi cho Google Sign-In                    googleErrorDialogMessage = errorMessage                }            )            Spacer(modifier = Modifier.height(bigSpacer))        }    }}

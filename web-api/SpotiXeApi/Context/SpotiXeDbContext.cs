@@ -23,13 +23,15 @@ public partial class SpotiXeDbContext : DbContext
 
     public virtual DbSet<Playlist> Playlists { get; set; }
 
-    public virtual DbSet<PlaylistSong> PlaylistSongs { get; set; }
+    public virtual DbSet<Playlistsong> PlaylistSongs { get; set; }
 
     public virtual DbSet<Song> Songs { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<Emailotp> EmailOtps { get; set; }
 
-    public virtual DbSet<UserFollowedPlaylist> UserFollowedPlaylists { get; set; }
+
+    public virtual DbSet<Userfollowedplaylist> UserFollowedPlaylists { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -116,7 +118,7 @@ public partial class SpotiXeDbContext : DbContext
                 .HasConstraintName("FK_Playlists_Users");
         });
 
-        modelBuilder.Entity<PlaylistSong>(entity =>
+        modelBuilder.Entity<Playlistsong>(entity =>
         {
             entity.HasKey(e => new { e.PlaylistId, e.SongId })
                 .HasName("PRIMARY")
@@ -128,11 +130,11 @@ public partial class SpotiXeDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime");
 
-            entity.HasOne(d => d.Playlist).WithMany(p => p.PlaylistSongs)
+            entity.HasOne(d => d.Playlist).WithMany(p => p.Playlistsongs)
                 .HasForeignKey(d => d.PlaylistId)
                 .HasConstraintName("FK_PlaylistSongs_Playlists");
 
-            entity.HasOne(d => d.Song).WithMany(p => p.PlaylistSongs)
+            entity.HasOne(d => d.Song).WithMany(p => p.Playlistsongs)
                 .HasForeignKey(d => d.SongId)
                 .HasConstraintName("FK_PlaylistSongs_Songs");
         });
@@ -198,7 +200,7 @@ public partial class SpotiXeDbContext : DbContext
             entity.Property(e => e.Username).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<UserFollowedPlaylist>(entity =>
+        modelBuilder.Entity<Userfollowedplaylist>(entity =>
         {
             entity.HasKey(e => new { e.UserId, e.PlaylistId })
                 .HasName("PRIMARY")
@@ -210,11 +212,11 @@ public partial class SpotiXeDbContext : DbContext
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnType("datetime");
 
-            entity.HasOne(d => d.Playlist).WithMany(p => p.UserFollowedPlaylists)
+            entity.HasOne(d => d.Playlist).WithMany(p => p.Userfollowedplaylists)
                 .HasForeignKey(d => d.PlaylistId)
                 .HasConstraintName("FK_UserFollowedPlaylists_Playlists");
 
-            entity.HasOne(d => d.User).WithMany(p => p.UserFollowedPlaylists)
+            entity.HasOne(d => d.User).WithMany(p => p.Userfollowedplaylists)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_UserFollowedPlaylists_Users");
         });

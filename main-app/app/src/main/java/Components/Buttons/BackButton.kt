@@ -1,5 +1,6 @@
 package Components.Buttons
 
+import Components.noDoubleClick
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -19,7 +20,10 @@ fun BackButton(navController: NavController){
         modifier = Modifier
             .padding(start = 8.dp)
             .size(40.dp)
-            .clickable { navController.navigateUp() },
+//            .clickable { navController.navigateUp() },
+            .noDoubleClick{
+                navController.navigateUp()
+            },
         contentAlignment = Alignment.Center
     ) {
         Icon(

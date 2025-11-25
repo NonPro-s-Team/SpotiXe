@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,16 +37,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.spotixe.Data.AlbumRepository
 import com.example.spotixe.Data.ArtistRepository
 import com.example.spotixe.Data.PlaylistRepository
 import com.example.spotixe.MainRoute
+import com.example.spotixe.auth.data.AuthDataStore
 import com.example.spotixe.player.rememberPlayerVMActivity
 import com.example.spotixe.viewmodel.SongViewModel
 
@@ -56,6 +63,9 @@ fun HomeScreen(navController: NavHostController) {
     val songs by songViewModel.songs.collectAsState()
     val isLoading by songViewModel.isLoading.collectAsState()
     
+    val authDataStore = AuthDataStore(context)
+    val userData by authDataStore.getUserData().collectAsState(initial = null)
+
     val playerVM = rememberPlayerVMActivity()
 
     Box(
@@ -97,15 +107,45 @@ fun HomeScreen(navController: NavHostController) {
                             modifier = Modifier
                                 .padding(start = 8.dp)
                                 .size(40.dp)
-                                .clickable { navController.navigate(MainRoute.User) },
+                                .clickable {
+                                    navController.navigate(MainRoute.User) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.AccountCircle,
-                                contentDescription = "Profile",
-                                tint = Color.White,
-                                modifier = Modifier.size(40.dp)
-                            )
+                            if (userData?.avatarUrl != null && userData?.avatarUrl?.isNotEmpty() == true) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(userData?.avatarUrl)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "Profile",
+                                    modifier = Modifier
+                                        .size(55.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(55.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF1DB954)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AccountCircle,
+                                        contentDescription = "Profile",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(40.dp)
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -176,7 +216,7 @@ fun HomeScreen(navController: NavHostController) {
                                 ApiSongCardRow(
                                     song = song,
                                     navController = navController,
-                                    playerViewModel = playerVM  // Truyền playerVM để tự động phát nhạc
+                                    playerViewModel = playerVM
                                 )
                             }
                         }
@@ -203,7 +243,9 @@ fun HomeScreen(navController: NavHostController) {
                         Text(
                             text = "See All",
                             color = Color(0xFF1DB954),
-                            modifier = Modifier.clickable { /* navController.navigate("recently_all") */ }
+                            modifier = Modifier.clickable {
+                                navController.navigate(MainRoute.seeAll(SeeAllType.RecentlyPlayed.value))
+                            }
                         )
                     }
 
@@ -250,7 +292,9 @@ fun HomeScreen(navController: NavHostController) {
                         Text(
                             text = "See All",
                             color = Color(0xFF1DB954),
-                            modifier = Modifier.clickable { /* navController.navigate("playlist_all") */ }
+                            modifier = Modifier.clickable {
+                                navController.navigate(MainRoute.seeAll(SeeAllType.Playlists.value,))
+                            }
                         )
                     }
 
@@ -295,7 +339,9 @@ fun HomeScreen(navController: NavHostController) {
                         Text(
                             text = "See All",
                             color = Color(0xFF1DB954),
-                            modifier = Modifier.clickable { /* navController.navigate("albums_all") */ }
+                            modifier = Modifier.clickable {
+                                navController.navigate(MainRoute.seeAll(SeeAllType.Albums.value))
+                            }
                         )
                     }
 
@@ -340,7 +386,9 @@ fun HomeScreen(navController: NavHostController) {
                         Text(
                             text = "See All",
                             color = Color(0xFF1DB954),
-                            modifier = Modifier.clickable { /* navController.navigate("artists_all") */ }
+                            modifier = Modifier.clickable {
+                                navController.navigate(MainRoute.seeAll(SeeAllType.Artists.value))
+                            }
                         )
                     }
 

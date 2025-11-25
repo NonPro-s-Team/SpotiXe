@@ -1,15 +1,40 @@
-using System.Text;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SpotiXeApi.Context;
+using SpotiXeApi.Filters;
 using SpotiXeApi.Repositories;
 using SpotiXeApi.Services;
+using System.Text;
+
+// Load Firebase Admin SDK
+var firebaseCredentialsPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
+
+if (string.IsNullOrEmpty(firebaseCredentialsPath))
+{
+    Console.WriteLine("GOOGLE_APPLICATION_CREDENTIALS is NOT set!");
+}
+else
+{
+    FirebaseApp.Create(new AppOptions()
+    {
+        Credential = GoogleCredential.FromFile(firebaseCredentialsPath)
+    });
+
+    Console.WriteLine("Firebase Admin SDK loaded successfully!");
+}
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    // Thêm global filter để kiểm tra user active
+    options.Filters.Add<ActiveUserAuthorizationFilter>();
+});
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -84,13 +109,24 @@ builder.Services.AddAuthorization();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<SpotiXeDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(
+        connectionString, 
+        ServerVersion.AutoDetect(connectionString)
+    )
+);
 
 // Register Services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<FirebaseService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<UserService>();
+
+// Register Filters
+builder.Services.AddScoped<ActiveUserAuthorizationFilter>();
+builder.Services.AddScoped<EmailOtpService>();  
+builder.Services.AddScoped<EmailSenderService>();
+
+//builder.WebHost.UseUrls("http://localhost:6000", "https://localhost:6001");
 
 var app = builder.Build();
 

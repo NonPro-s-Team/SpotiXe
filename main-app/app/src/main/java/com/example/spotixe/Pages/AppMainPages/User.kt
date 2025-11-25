@@ -136,6 +136,7 @@ fun UserScreen(navController: NavHostController) {
                         IconButton(
                             onClick = {
                                 scope.launch {
+                                    playerVM.reset() // Dừng nhạc và xoá trạng thái player
                                     authDataStore.clearAll()
                                     navController.navigate(StartRoute.Start2) {
                                         popUpTo(Graph.MAIN) { inclusive = true }

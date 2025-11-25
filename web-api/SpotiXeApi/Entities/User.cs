@@ -17,7 +17,7 @@ public partial class User
 
     public string? AvatarUrl { get; set; }
 
-    public bool IsActive { get; set; }
+    public ulong IsActive { get; set; }
 
     public DateTime? DeletedAt { get; set; }
 
@@ -35,5 +35,5 @@ public partial class User
 
     public virtual ICollection<Playlist> Playlists { get; set; } = new List<Playlist>();
 
-    public virtual ICollection<UserFollowedPlaylist> UserFollowedPlaylists { get; set; } = new List<UserFollowedPlaylist>();
+    public virtual ICollection<Userfollowedplaylist> Userfollowedplaylists { get; set; } = new List<Userfollowedplaylist>();
 }

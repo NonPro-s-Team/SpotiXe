@@ -3,6 +3,8 @@ package com.example.spotixe
 import Components.Bar.MiniPlayerBar
 import Components.Bar.BottomBar
 import Components.SetSystemBars
+import Components.Layout.SpotixeDialog
+import com.example.spotixe.auth.utils.UnauthorizedEventManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -26,14 +28,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.example.spotixe.Data.AlbumRepository
 import com.example.spotixe.Data.ArtistRepository
 import com.example.spotixe.Data.PlaylistRepository
 import com.example.spotixe.Data.SongRepository
 import com.example.spotixe.Pages.Pages.AppMainPages.*
 import com.example.spotixe.Pages.Pages.SignInPages.Sign_in1Screen
+import com.example.spotixe.Pages.Pages.SignInPages.Sign_in2Screen
 import com.example.spotixe.Pages.Pages.SignUpPages.Sign_UpEmail1Screen
 import com.example.spotixe.Pages.Pages.SignUpPages.Sign_UpEmail2Screen
 import com.example.spotixe.Pages.Pages.SignUpPages.Sign_UpPhone1Screen
@@ -59,6 +60,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+//        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+//            if (!task.isSuccessful) {
+//                Log.w("FCM_TOKEN", "Fetching FCM registration token failed", task.exception)
+//                return@addOnCompleteListener
+//            }
+//
+//            val token = task.result
+//            Log.d("FCM_TOKEN", "Token: $token")
+//
+//            // Nếu muốn thì show toast:
+//             Toast.makeText(this, "Token: $token", Toast.LENGTH_SHORT).show()
+//        }
+
+
         setContent {
             navController = rememberNavController()
             // VM phát nhạc dùng chung toàn app (scope Activity) - NEW ExoPlayer-based
@@ -71,6 +86,9 @@ class MainActivity : ComponentActivity() {
             // Authentication ViewModel
             val authVM: AuthViewModel = viewModel()
 
+            // Observe unauthorized dialog state
+            val showUnauthorizedDialog by UnauthorizedEventManager.showUnauthorizedDialog
+
             // Handle intent to navigate to player screen when notification is clicked
             LaunchedEffect(intent) {
                 playerVM?.let { vm ->
@@ -79,6 +97,32 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+
+            // Unauthorized Dialog - shown when account is disabled (401)
+            SpotixeDialog(
+                visible = showUnauthorizedDialog,
+                title = "Tài khoản bị vô hiệu hóa",
+                message = UnauthorizedEventManager.dialogMessage,
+                primaryButtonText = "OK",
+                onPrimaryClick = {
+                    // Handle logout and navigate to START
+                    UnauthorizedEventManager.handleLogout(this@MainActivity) {
+                        navController?.navigate(Graph.START) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                },
+                onDismissRequest = {
+                    // Same action as primary button
+                    UnauthorizedEventManager.handleLogout(this@MainActivity) {
+                        navController?.navigate(Graph.START) {
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
 
             SpotiXeTheme {
                 SetSystemBars()
@@ -91,7 +135,8 @@ class MainActivity : ComponentActivity() {
                 val hideBottomOnRoutes = setOf(
                     MainRoute.SongView,
                     MainRoute.SongViewMore,
-                    MainRoute.UserDetail
+                    MainRoute.UserDetail,
+                    MainRoute.SeeAll
                 )
 
                 // Check if current route matches api_song_view pattern
@@ -124,7 +169,7 @@ class MainActivity : ComponentActivity() {
                         // Determine start destination based on login status
                         val isLoggedIn by authVM.isLoggedIn.collectAsState()
                         val startDest = if (isLoggedIn) Graph.MAIN else Graph.START
-//                        val startDest = Graph.AUTH
+//                        val startDest = Graph.MAIN  // TEMP: BỎ QUA START/ AUTH ĐỂ DỄ TEST
 
                         NavHost(
                             navController = navController!!,
@@ -149,6 +194,7 @@ class MainActivity : ComponentActivity() {
                                 route = Graph.AUTH
                             ) {
                                 composable(AuthRoute.SignIn1) { Sign_in1Screen(navController!!) }
+                                composable(AuthRoute.SignIn2) { Sign_in2Screen(navController!!) }
                                 composable(AuthRoute.SignUpEmail1) { Sign_UpEmail1Screen(navController!!) }
                                 composable(AuthRoute.SignUpEmail2) { Sign_UpEmail2Screen(navController!!) }
                                 composable(AuthRoute.SignUpPhone1) { Sign_UpPhone1Screen(navController!!) }
@@ -267,6 +313,22 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
 
+                                // See All Screen
+                                composable(
+                                    route = MainRoute.SeeAll,
+                                    arguments = listOf(navArgument("type") { type = NavType.StringType })
+                                ) { backStackEntry ->
+                                    val typeArg = backStackEntry.arguments?.getString("type") ?: "recently_played"
+                                    val seeAllType = SeeAllType.from(typeArg)
+                                    val title = SeeAllType.toTitle(seeAllType)
+
+                                    SeeAllScreen(
+                                        navController = navController!!,
+                                        type = seeAllType,
+                                        title = title
+                                    )
+                                }
+
                                 // Artist detail
                                 composable(
                                     route = MainRoute.ArtistDetail,
@@ -302,21 +364,15 @@ class MainActivity : ComponentActivity() {
                                         navController!!.navigate("api_song_view/$songId")
                                     }
                                 },
-                                onSeek = { newProgress ->
-                                    playerVM!!.seekTo(newProgress)
-                                },
-                                onSeekStart = {
-                                    playerVM!!.pauseForSeeking()
-                                },
-                                onSeekEnd = {
-                                    playerVM!!.resumeAfterSeeking()
-                                },
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
-                                    .padding(start = 16.dp, end = 16.dp, bottom = inner.calculateBottomPadding() + 8.dp)
+                                    .padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        bottom = inner.calculateBottomPadding() + 8.dp
+                                    )
                             )
                         }
-
                     }
                 }
             }

@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SpotiXeApi.DTOs;
+using SpotiXeApi.Entities;
 using SpotiXeApi.Services;
+using SpotiXeApi.Utils;
 
 namespace SpotiXeApi.Controllers;
 
@@ -16,17 +18,24 @@ public class AuthController : ControllerBase
     private readonly JwtService _jwtService;
     private readonly UserService _userService;
     private readonly ILogger<AuthController> _logger;
+    private readonly EmailOtpService _emailOtpService;
+    private readonly EmailSenderService _emailService;
 
     public AuthController(
         FirebaseService firebaseService,
         JwtService jwtService,
         UserService userService,
-        ILogger<AuthController> logger)
+        ILogger<AuthController> logger,
+        EmailOtpService emailOtpService,
+        EmailSenderService emailService
+    )
     {
         _firebaseService = firebaseService;
         _jwtService = jwtService;
         _userService = userService;
         _logger = logger;
+        _emailOtpService = emailOtpService;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -100,7 +109,7 @@ public class AuthController : ControllerBase
             var user = await _userService.FindOrCreateUserAsync(firebaseUserInfo);
 
             // Kiểm tra user có active không
-            if (!user.IsActive)
+            if (user.IsActive == 0UL)
             {
                 _logger.LogWarning($"Inactive user attempted login: {user.UserId}");
                 return Unauthorized(new ErrorResponseDto
@@ -172,4 +181,138 @@ public class AuthController : ControllerBase
             role = role
         });
     }
+
+
+    [HttpPost("request-otp")]
+    public async Task<IActionResult> RequestOtp([FromBody] RequestOtpDto dto)
+    {
+        // Lấy user theo Email (nếu cần kiểm tra tồn tại)
+        var user = await _userService.FindUserByEmailAsync(dto.Email);
+
+        //if(user == null)
+        //{
+        //    return BadRequest(new
+        //    {
+        //        success = false,
+        //        message = "Óc chó, đã bị ban"
+        //    });
+        //}
+
+        if(user != null && user.IsActive == 0)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "Tài khoản của bạn đã bị vô hiệu hoá."
+            });
+        }
+
+        // Validate email format
+        if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))
+            return BadRequest("Invalid email address.");
+
+        // Kiểm tra spam OTP (30 giây)
+        var lastOtp = await _emailOtpService.GetOtpAsync(dto.Email);
+        if (lastOtp != null && (DateTime.UtcNow - lastOtp.CreatedAt).TotalSeconds < 30)
+            return BadRequest("Please wait 30 seconds before requesting another OTP.");
+
+        // Xóa OTP cũ nếu có
+        await _emailOtpService.DeleteOtpByEmailAsync(dto.Email);
+
+        // Sinh OTP an toàn bằng Crypto RNG
+        var otp = OtpGenerator.GenerateOtp(6);
+
+        // Thời gian hết hạn
+        var expires = DateTime.UtcNow.AddMinutes(5);
+
+        // Lưu OTP
+        await _emailOtpService.SaveOtpAsync(dto.Email, otp, expires);
+
+        // Nội dung email
+        string subject = "Your SpotiXe OTP Code";
+        string message = $"Your OTP is: {otp}\nThis code will expire in 5 minutes.";
+
+        // Gửi email
+        await _emailService.SendAsync(dto.Email, subject, message);
+
+        return Ok(new { message = "OTP sent successfully." });
+    }
+
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
+    {
+        try
+        {
+            // Validate DTO
+            if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))
+                return BadRequest("Invalid email.");
+
+            if (string.IsNullOrWhiteSpace(dto.Otp) || dto.Otp.Length < 4)
+                return BadRequest("Invalid OTP format.");
+
+            // Lấy OTP từ DB
+            var otpRecord = await _emailOtpService.GetOtpAsync(dto.Email);
+
+            if (otpRecord == null)
+                return BadRequest("OTP not found. Please request a new OTP.");
+
+            // Kiểm tra OTP hết hạn
+            if (otpRecord.ExpiresAt < DateTime.UtcNow)
+            {
+                await _emailOtpService.DeleteOtpByEmailAsync(dto.Email);
+                return BadRequest("OTP expired. Please request a new OTP.");
+            }
+
+            // Kiểm tra mã OTP khớp
+            if (otpRecord.Otp != dto.Otp)
+                return BadRequest("Invalid OTP.");
+
+            // Lấy hoặc tạo user theo Email
+            var user = await _userService.FindOrCreateUserByEmailAsync(dto.Email, dto.DisplayName);
+
+            if (user == null)
+                return StatusCode(500, "Failed to create user.");
+
+            if (user != null && user.IsActive == 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Tài khoản của bạn đã bị vô hiệu hoá."
+                });
+            }
+
+            // Xoá OTP sau khi dùng (chống replay)
+            await _emailOtpService.DeleteOtpByEmailAsync(dto.Email);
+
+            // Tạo JWT (UserId + Email + Username)
+            var token = _jwtService.GenerateToken(
+                user.UserId,
+                user.Email,
+                user.Username
+            );
+
+            return Ok(new
+            {
+                success = true,
+                token,
+                user = new
+                {
+                    user.UserId,
+                    user.Email,
+                    user.Username
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            // Bạn có logger thì thêm:
+            // _logger.LogError(ex, "Verify OTP failed");
+            return StatusCode(500, "Internal server error: " + ex.Message);
+        }
+    }
+
+
+
+
 }

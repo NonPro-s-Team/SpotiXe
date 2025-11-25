@@ -1,6 +1,7 @@
 package com.example.spotixe.Pages.Pages.StartPages
 
 import Components.Buttons.GoogleSignInButtonFirebase
+import Components.Layout.SpotixeDialog
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,6 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -38,6 +43,23 @@ import com.example.spotixe.R
 @Composable
 fun Start2Screen(navController: NavController) {
     val context = LocalContext.current
+
+    var showErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
+
+    // Google Sign-In Error Dialog
+    SpotixeDialog(
+        visible = showErrorDialog,
+        title = "Lỗi đăng nhập Google",
+        message = errorMessage,
+        primaryButtonText = "OK",
+        onPrimaryClick = {
+            showErrorDialog = false
+        },
+        onDismissRequest = {
+            showErrorDialog = false
+        }
+    )
 
     BoxWithConstraints(
         modifier = Modifier
@@ -124,13 +146,10 @@ fun Start2Screen(navController: NavController) {
                         launchSingleTop = true
                     }
                 },
-                onError = { error ->
-                    // Error already handled with Toast in the component
-                    Toast.makeText(
-                        context,
-                        "Sign in failed: ${error.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                onError = { errorMsg, errorCode ->
+                    // Hiển thị dialog lỗi cho Google Sign-In
+                    errorMessage = errorMsg
+                    showErrorDialog = true
                 }
             )
         }
